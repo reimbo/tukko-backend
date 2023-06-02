@@ -1,0 +1,5 @@
+node_modules
+dist
+README.md
+nodemon.json
+Dockerfile
