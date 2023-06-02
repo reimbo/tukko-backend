@@ -1,0 +1,14 @@
+### Node ###
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules/
+
+# dotenv environment variable files
+.env*
+
+# TypeScript compilation directory
+dist

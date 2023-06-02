@@ -1,0 +1,9 @@
+{
+  "verbose": true,
+  "ignore": [],
+  "watch": ["src/**/*.ts"],
+  "execMap": {
+    "ts": "node --inspect=0.0.0.0:9229 --enable-source-maps --nolazy -r ts-node/register"
+  },
+  "ext": "ts"
+}
