@@ -1,12 +1,12 @@
-require('source-map-support').install();
 import express, { Express, Request, Response } from 'express';
+import { tmsRouter } from './routes/tms_data'; 
 
 const app: Express = express()
+app.use(express.json())
+const port: Number = parseInt(process.env.PORT as string) || 3000
 
-app.get('/', (req: Request, res: Response) => {
-  res.send("Hello")
-})
+app.use("/tms", tmsRouter)
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 })
