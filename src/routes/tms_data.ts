@@ -1,10 +1,15 @@
 import express, { Express, Request, Response } from "express";
-import { grab } from "../scripts/fetch";  
+import { fetch } from "../scripts/fetch";  
 
 export const tmsRouter: Express = express();
 tmsRouter.use(express.json());
 
-tmsRouter.get("/", async (_req: Request, res: Response) => {
-  const response: String = await grab("https://tie.digitraffic.fi/api/tms/v1/stations/data")
+tmsRouter.get("/stations", async (_req: Request, res: Response): Promise<void> => {
+  const response: String | unknown = await fetch("https://tie.digitraffic.fi/api/tms/v1/stations")
+  res.status(200).json(response)
+})
+
+tmsRouter.get("/stations/data", async (_req: Request, res: Response): Promise<void> => {
+  const response: String | unknown = await fetch("https://tie.digitraffic.fi/api/tms/v1/stations/data")
   res.status(200).json(response)
 })
