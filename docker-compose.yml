@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  redis-cache:
+    image: redis:7-alpine
+    container_name: travis-cache
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server --include /usr/local/etc/redis/redis.conf
+
+  mongoDB:
+    image: mongo:jammy
+    container_name: travis-archive
+    env_file:
+      - .env
+
+  tv-api:
+    depends_on:
+      - redis-cache
+      - mongoDB
+    container_name: travis-app
+    restart: always
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "443:443"
+      - "80:80"
