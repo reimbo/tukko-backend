@@ -1,5 +1,5 @@
 import express, { Express } from 'express';
-import { tmsRouter } from './routes/tms_data'; 
+import { tmsRouter } from './routes/tms_data/tms_data'; 
 import { connect } from './scripts/mongo';
 
 
