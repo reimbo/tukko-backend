@@ -5,7 +5,7 @@ export const getSensors = async (sensorName: string): Promise<mongoDB.Document |
   try {
 
 const query = [
-  { $match: { 'stations.sensorValues.name': sensorName } },
+  { $match: { 'stations.sensorValues.measuredTime': {$gt: new Date(Date.now()-(1000*60*60*24))},'stations.sensorValues.name': sensorName } },
   { $unwind: '$stations' },
   { $unwind: '$stations.sensorValues' },
   { $match: { 'stations.sensorValues.name': sensorName } },
@@ -14,6 +14,8 @@ const query = [
     name: '$stations.sensorValues.name',
     unit: '$stations.sensorValues.unit',
     value: '$stations.sensorValues.value',
+    stationId: '$stations.sensorValues.stationId',
+    measuredTime: '$stations.sensorValues.measuredTime'
   }},
 ];
 
