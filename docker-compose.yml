@@ -15,6 +15,8 @@ services:
     container_name: travis-archive
     env_file:
       - .env
+    ports:
+      - "2717:27017"
 
   tv-api:
     depends_on:

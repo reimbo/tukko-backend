@@ -23,9 +23,8 @@ export const fetch = async (url: String): Promise<mongoDB.Document | unknown> =>
 
 const storeFetch = async (data: any): Promise<mongoDB.InsertOneResult<mongoDB.Document> | unknown>  => {
   try {
-    const stations: Station[] = (data as StationData).stations.map((station: Station) => {
-      const sensorValues: Sensor[] = station.sensorValues.map((sensor: Sensor) => {
-        return {
+    const stations: Station[] = data.stations.map((station: Station) => {
+      const sensorValues: Sensor[] = station.sensorValues.map((sensor: Sensor) => ({
           id: sensor.id,
           stationId: sensor.stationId,
           name: sensor.name,
@@ -35,8 +34,7 @@ const storeFetch = async (data: any): Promise<mongoDB.InsertOneResult<mongoDB.Do
           measuredTime: sensor.measuredTime,
           unit: sensor.unit,
           value: sensor.value
-        }
-      })
+        }))
 
       return {
         id: station.id,
@@ -46,27 +44,27 @@ const storeFetch = async (data: any): Promise<mongoDB.InsertOneResult<mongoDB.Do
       }
     })
     
-    return(
-      await collections.tms?.insertOne({
-        dataUpdatedTime: data.dataUpdatedTime,
-        stations: stations
-      })
-      .then(async () => await getStore())
-      .catch((error: unknown) => {
-        console.error(error)
-        return error
-      })
-    )
+    const result = await collections.tms?.insertOne({
+      dataUpdatedTime: data.dataUpdatedTime,
+      stations: stations,
+    });
 
-  } catch (error: unknown) {
-    console.error(error)
+    if (!result) {
+      throw new Error('Failed to insert data into MongoDB');
+      }
+
+    return await getStore();
+
+    } catch (error: unknown) {
+      console.error(error)
     return error
   }
 }
 
-const getStore = async (): Promise<mongoDB.Document | unknown | null> => {
+const getStore = async (): Promise<mongoDB.Document | unknown >=> {
   try {
-    const stationDoc = (await collections.tms?.findOne({}))
+    const stationDoc = (await collections.tms?.findOne({})) as mongoDB.Document
+    console.log(typeof(stationDoc))
     return stationDoc
   } catch (error: unknown) {
     console.error(error)
