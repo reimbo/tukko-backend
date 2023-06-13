@@ -28,9 +28,9 @@ const fetchAndInsertData = async () => {
     console.log("Fetching data...");
     const data : StationData = await fetch("https://tie.digitraffic.fi/api/tms/v1/stations/data") as StationData;
     console.log("Data fetched successfully");
-    console.log("Data:", data);
+    // console.log("Data:", data);
     console.log("Inserting data into MongoDB...");
-    await insertDataIntoMongoDB(data);
+    // await insertDataIntoMongoDB(data);
     console.log("Data inserted into MongoDB");
   } catch (error) {
     console.error("Error fetching and inserting data:", error);
