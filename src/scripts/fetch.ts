@@ -30,9 +30,9 @@ const storeFetch = async (data: any): Promise<mongoDB.InsertOneResult<mongoDB.Do
           stationId: sensor.stationId,
           name: sensor.name,
           shortName: sensor.shortName,
-          timeWindowStart: sensor.timeWindowStart,
-          timeWindowEnd: sensor.timeWindowEnd,
-          measuredTime: sensor.measuredTime,
+          timeWindowStart: new Date(sensor.timeWindowStart),
+          timeWindowEnd: new Date(sensor.timeWindowEnd),
+          measuredTime: new Date(sensor.measuredTime),
           unit: sensor.unit,
           value: sensor.value
         }
@@ -41,14 +41,14 @@ const storeFetch = async (data: any): Promise<mongoDB.InsertOneResult<mongoDB.Do
       return {
         id: station.id,
         tmsNumber: station.tmsNumber,
-        dataUpdatedTime: station.dataUpdatedTime,
+        dataUpdatedTime: new Date(station.dataUpdatedTime),
         sensorValues: sensorValues
       }
     })
     
     return(
       await collections.tms?.insertOne({
-        dataUpdatedTime: data.dataUpdatedTime,
+        dataUpdatedTime: new Date(data.dataUpdatedTime),
         stations: stations
       })
       .then(async () => await getStore())
