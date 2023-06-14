@@ -15,7 +15,7 @@ export interface Sensor {
 export interface Station {
   id?: ObjectId,
   tmsNumber: number,
-  dataUpdatedTime: string
+  dataUpdatedTime: string,
   sensorValues: Sensor[]
 }
 
