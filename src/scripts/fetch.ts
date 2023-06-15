@@ -1,8 +1,9 @@
 const axios = require('axios').default;
 import * as mongoDB from "mongodb"
 import { collections} from "../scripts/mongo";
-import {  Station, Sensor } from "models/tms_data_model";
+import {  StationData } from "models/tms_data_model";
 import { AxiosResponse } from "axios";
+import { ObjectId } from "mongodb";
 
 const axiosConf = {
   headers: {
@@ -13,8 +14,62 @@ const axiosConf = {
 export const fetch = async (url: String): Promise<mongoDB.Document | unknown> => {
   try {
     const response: AxiosResponse = await axios.get(url, axiosConf)
-    const data = await storeFetch(response.data)
-    await runAggregation()
+    const response2: AxiosResponse = await axios.get("https://tie.digitraffic.fi/api/tms/v1/stations")  
+    
+    // Filter out station data with sensor values from response
+    const stationDataFetched = response.data.stations.map( (station: any) => {
+      return {
+        stationId: station.tmsNumber,
+        dataUpdatedTime: station.dataUpdatedTime,
+        sensorValues: station.sensorValues.map( (sensor: any) => {
+          return {
+            stationId: sensor.stationId,
+            name: sensor.name,
+            shortName: sensor.shortName,
+            timeWindowStart: sensor.timeWindowStart,
+            timeWindowEnd: sensor.timeWindowEnd,
+            measuredTime: sensor.measuredTime,
+            unit: sensor.unit,
+            value: sensor.value
+          }
+        })
+      }
+    })
+    // Filter out station names and coordinates from response2
+    const stationsListFetched = response2.data.features.map((location: any) => {
+      return {
+        geometry: {
+          coordinates: location.geometry.coordinates
+        },
+        properties: {
+          id: location.properties.id,
+          tmsNumber: location.properties.tmsNumber,
+          name: location.properties.name,
+          dataUpdatedTime: location.properties.dataUpdatedTime
+        }
+      }
+    });
+    
+    // Combine the required data from both responses into one object
+    const combinedData: StationData = {
+      dataUpdatedTime: new Date(response.data.dataUpdatedTime),
+      stations: stationDataFetched.map((station: any) => {
+        const matchingStation = stationsListFetched.find((location: any) => location.properties.tmsNumber === station.stationId);
+    
+        return {
+          id: ObjectId,
+          tmsNumber: station.stationId,
+          dataUpdatedTime: station.dataUpdatedTime,
+          longitude: matchingStation.geometry.coordinates[1],
+          latitude: matchingStation.geometry.coordinates[0],
+          sensorValues: station.sensorValues
+        };
+      })
+    };
+    
+     const data = await storeFetch(combinedData);
+    
+    await runAggregation("OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1")
     return data
   } catch (error) {
     console.log(error);
@@ -22,7 +77,7 @@ export const fetch = async (url: String): Promise<mongoDB.Document | unknown> =>
   }
 }
 
-const storeFetch = async (data: any): Promise<mongoDB.InsertOneResult<mongoDB.Document> | unknown>  => {
+const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mongoDB.Document> | unknown>  => {
   try {
     // const existingData = await getStore("23172") as mongoDB.Document | undefined;
     // console.log(existingData && existingData[0].dataUpdatedTime instanceof Date ? existingData[0].dataUpdatedTime.toDateString() : undefined);
@@ -39,26 +94,24 @@ const storeFetch = async (data: any): Promise<mongoDB.InsertOneResult<mongoDB.Do
     //     return existingData;
     //   }
     // }
-    const stations: Station[] = data.stations.map((station: Station) => {
-      const sensorValues: Sensor[] = station.sensorValues.map((sensor: Sensor) => ({
-          id: sensor.id,
-          stationId: sensor.stationId,
-          name: sensor.name,
-          shortName: sensor.shortName,
-          timeWindowStart: sensor.timeWindowStart,
-          timeWindowEnd: sensor.timeWindowEnd,
-          measuredTime: sensor.measuredTime,
-          unit: sensor.unit,
-          value: sensor.value
-        }))
+    // const stations: Station[] = data.flatMap((stationData: StationData) =>
+    //   stationData.stations.map((station: Station) => ({
+    //     id: station.id,
+    //     tmsNumber: station.tmsNumber,
+    //     dataUpdatedTime: stationData.dataUpdatedTime,
+    //     sensorValues: station.sensorValues.map((sensor: Sensor) => ({
+    //       stationId: sensor.stationId,
+    //       name: sensor.name,
+    //       shortName: sensor.shortName,
+    //       timeWindowStart: sensor.timeWindowStart,
+    //       timeWindowEnd: sensor.timeWindowEnd,
+    //       measuredTime: sensor.measuredTime,
+    //       unit: sensor.unit,
+    //       value: sensor.value
+    //     }))
+    //   }))
+    // );
 
-      return {
-        id: station.id,
-        tmsNumber: station.tmsNumber,
-        dataUpdatedTime: new Date(station.dataUpdatedTime),
-        sensorValues: sensorValues
-      }
-    })
     // console.log(typeof(stations[0].dataUpdatedTime))
     // console.log(data.dataUpdatedTime)
     // console.log(stations.length)
@@ -69,7 +122,7 @@ const storeFetch = async (data: any): Promise<mongoDB.InsertOneResult<mongoDB.Do
     // );
     const result = await collections.tms?.updateOne(
       {},
-      { $set: { stations: stations }, $setOnInsert: { dataUpdatedTime: data.dataUpdatedTime } },
+      { $set: { stations: data }, $setOnInsert: { dataUpdatedTime: data.dataUpdatedTime } },
       { upsert: true }
     );
     if (!result) {
@@ -120,7 +173,7 @@ const getStore = async (
     }
 
     const stationDoc = await collections.tms?.findOne(query);
-    return stationDoc ?? undefined;
+    return stationDoc ? stationDoc : undefined;
   } catch (error: unknown) {
     console.error(error);
     return undefined;
@@ -137,14 +190,40 @@ const getStore = async (
 // db.tms.aggregate([ { $match: { 'stations.sensorValues.name': 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2' } }, { $project: { stations: { $map: { input: '$stations', as: 'station', in: { sensorValues: { $filter: { input: '$$station.sensorValues', as: 'sensor', cond: { $eq: ['$$sensor.name', 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2'] } } } } } } } }])
 // db.tms.aggregate([{ $match: { 'stations.sensorValues.name': 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2' } }, { $project: { stations: { $map: { input: '$stations', as: 'station', in: { sensorValues: { $filter: { input: '$$station.sensorValues', as: 'sensor', cond: { $eq: ['$$sensor.name', 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2'] } } } } } } } }, { $unwind: '$stations' }, { $unwind: '$stations.sensorValues' }, { $sort: { 'stations.sensorValues.value': -1 } }])
 
-export async function runAggregation() {
+export async function runAggregation(searchString: string) {
 
   try {
-
+    const searchSensorList = [
+      'KESKINOPEUS_5MIN_LIUKUVA_SUUNTA1',
+      'KESKINOPEUS_5MIN_LIUKUVA_SUUNTA2',
+      'KESKINOPEUS_60MIN_KIINTEA_SUUNTA2',
+      'KESKINOPEUS_60MIN_KIINTEA_SUUNTA1',
+      'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2',
+      'OHITUKSET_5MIN_LIUKUVA_SUUNTA1_MS1',
+      'KESKINOPEUS_5MIN_LIUKUVA_SUUNTA1_VVAPAAS1',
+      'KESKINOPEUS_5MIN_LIUKUVA_SUUNTA2_VVAPAAS2',
+      'KESKINOPEUS_60MIN_KIINTEA_SUUNTA1',
+      'KESKINOPEUS_60MIN_KIINTEA_SUUNTA2',
+      'KESKINOPEUS_5MIN_KIINTEA_SUUNTA1_VVAPAAS1',
+      'KESKINOPEUS_5MIN_KIINTEA_SUUNTA2_VVAPAAS2',
+      'OHITUKSET_5MIN_LIUKUVA_SUUNTA1',
+      'OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1',
+      'OHITUKSET_5MIN_KIINTEA_SUUNTA2_MS2',
+      'OHITUKSET_5MIN_KIINTEA_SUUNTA2',
+      'OHITUKSET_60MIN_KIINTEA_SUUNTA1',
+      'OHITUKSET_60MIN_KIINTEA_SUUNTA2'
+    ];
+    
+    const query = {
+      'stations.sensorValues.name': {
+        $in: searchSensorList,
+        $regex: searchString,
+      },
+    };
     const aggregationPipeline = [
       {
         $match: {
-          'stations.sensorValues.name': 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2'
+          ...query
         }
       },
       {
@@ -159,7 +238,7 @@ export async function runAggregation() {
                     input: '$$station.sensorValues',
                     as: 'sensor',
                     cond: {
-                      $eq: ['$$sensor.name', 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2']
+                      $eq: ['$$sensor.name', searchString]
                     }
                   }
                 }
@@ -176,7 +255,8 @@ export async function runAggregation() {
       },
       {
         $sort: {
-          'stations.sensorValues.value': -1
+          'stations.sensorValues.value': -1,
+          'stations.sensorValues.stationId': 1
         }
       }
     ];
@@ -185,8 +265,8 @@ export async function runAggregation() {
     if(!result) {
       throw new Error('Failed to aggregate data from MongoDB');
     }
-    console.log(result[0].stations.sensorValues.value);
-    const filteredResult = result.map((station: any) => station.stations.sensorValues.value);
+    console.log(result);
+    const filteredResult = result.map((station: any) => `Station: ${station.stations.sensorValues.stationId} - Record: ${station.stations.sensorValues.value} ${station.stations.sensorValues.unit} - measuredTime: ${station.stations.sensorValues.measuredTime}`);
     console.log(filteredResult);
   } catch (error: unknown) {
     console.error(error)
