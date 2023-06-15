@@ -60,8 +60,7 @@ export const fetch = async (url: String): Promise<mongoDB.Document | unknown> =>
           id: ObjectId,
           tmsNumber: station.stationId,
           dataUpdatedTime: station.dataUpdatedTime,
-          longitude: matchingStation.geometry.coordinates[1],
-          latitude: matchingStation.geometry.coordinates[0],
+          coordinates: [matchingStation.geometry.coordinates[1],matchingStation.geometry.coordinates[0]],
           sensorValues: station.sensorValues
         };
       })
@@ -180,15 +179,6 @@ const getStore = async (
   }
 };
 
-//db.tms.find( { stations: { $elemMatch: { tmsNumber: 20002, 'sensorValues.stationId':20002 } }})
-//  db.tms.find( { stations: { $elemMatch: { tmsNumber: 130, 'sensorValues.id':5158 } }})
-// db.tms.find( { }, {stations: 0}) // will not show stations
-// db.tms.find( { }, {'stations.sensorValues': 1}) // only show sensorValues
-//// Assuming you have a collection called 'tms' and each document contains 'stations' array with 'sensorValues' objects
-
-// To show only selected sensor objects with a specific sensorID from each sensorValues array:
-// db.tms.aggregate([ { $match: { 'stations.sensorValues.name': 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2' } }, { $project: { stations: { $map: { input: '$stations', as: 'station', in: { sensorValues: { $filter: { input: '$$station.sensorValues', as: 'sensor', cond: { $eq: ['$$sensor.name', 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2'] } } } } } } } }])
-// db.tms.aggregate([{ $match: { 'stations.sensorValues.name': 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2' } }, { $project: { stations: { $map: { input: '$stations', as: 'station', in: { sensorValues: { $filter: { input: '$$station.sensorValues', as: 'sensor', cond: { $eq: ['$$sensor.name', 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2'] } } } } } } } }, { $unwind: '$stations' }, { $unwind: '$stations.sensorValues' }, { $sort: { 'stations.sensorValues.value': -1 } }])
 
 export async function runAggregation(searchString: string) {
 

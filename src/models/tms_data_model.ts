@@ -1,17 +1,5 @@
 import { ObjectId } from "mongodb";
 
-export interface Features{
-  id: string,
-  geometry: {
-    coordinates: number[]
-  },
-  properties: {
-    id: number,
-    tmsNumber: number,
-    name: string,
-    dataUpdatedTime: Date
-  }
-}
 
 export interface Sensor {
   id?:  ObjectId,
@@ -29,8 +17,7 @@ export interface Station {
   id?: ObjectId,
   tmsNumber: number,
   dataUpdatedTime: Date,
-  longitude: number,
-  latitude: number,
+  coordinates: number[],
   sensorValues: Sensor[]
 }
 
