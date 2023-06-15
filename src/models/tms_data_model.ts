@@ -18,6 +18,7 @@ export interface Station {
   tmsNumber: number,
   dataUpdatedTime: Date,
   coordinates: number[],
+  name: string,
   sensorValues: Sensor[]
 }
 
