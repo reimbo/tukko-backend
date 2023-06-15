@@ -53,6 +53,7 @@ export const fetch = async (url: String): Promise<mongoDB.Document | unknown> =>
     // Combine the required data from both responses into one object
     const combinedData: StationData = {
       dataUpdatedTime: new Date(response.data.dataUpdatedTime),
+
       stations: stationDataFetched.map((station: any) => {
         const matchingStation = stationsListFetched.find((location: any) => location.properties.tmsNumber === station.stationId);
     
@@ -60,16 +61,17 @@ export const fetch = async (url: String): Promise<mongoDB.Document | unknown> =>
           id: ObjectId,
           tmsNumber: station.stationId,
           dataUpdatedTime: station.dataUpdatedTime,
+          name: matchingStation.properties.name,
           coordinates: [matchingStation.geometry.coordinates[1],matchingStation.geometry.coordinates[0]],
           sensorValues: station.sensorValues
         };
       })
     };
-    
+    console.log(combinedData.stations[0].sensorValues[0].measuredTime)
      const data = await storeFetch(combinedData);
     
     await runAggregation("OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1")
-    return data
+    return combinedData;
   } catch (error) {
     console.log(error);
     throw error
@@ -128,7 +130,7 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
       throw new Error('Failed to insert data into MongoDB');
       }
 
-    return await getStore();
+    // return await getStore();
 
     } catch (error: unknown) {
       console.error(error)
@@ -136,48 +138,48 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
   }
 }
 
-const getStore = async (
-  stationId?: string,
-  sensorId?: string,
-  sensorName?: string,
-  date?: Date
-  ): Promise<mongoDB.Document | undefined> => {
-  try {
-    // const query: any = {};
+// const getStore = async (
+//   stationId?: string,
+//   sensorId?: string,
+//   sensorName?: string,
+//   date?: Date
+//   ): Promise<mongoDB.Document | undefined> => {
+//   try {
+//     // const query: any = {};
 
-    const criteria: any[] = [];
+//     const criteria: any[] = [];
 
-    if (stationId) {
-      // console.log(stationId)
-      criteria.push({ 'stations.id': stationId });
-    }
+//     if (stationId) {
+//       // console.log(stationId)
+//       criteria.push({ 'stations.id': stationId });
+//     }
 
-    if (sensorId) {
-      console.log(sensorId+"sensor***")
-      criteria.push({ 'stations.sensorValues.id': sensorId });
-    }
+//     if (sensorId) {
+//       console.log(sensorId+"sensor***")
+//       criteria.push({ 'stations.sensorValues.id': sensorId });
+//     }
 
-    if (sensorName) {
-      criteria.push({ 'stations.sensorValues.name': sensorName });
-    }
+//     if (sensorName) {
+//       criteria.push({ 'stations.sensorValues.name': sensorName });
+//     }
 
-    if (date) {
-      criteria.push({ 'stations.dataUpdatedTime': { $gte: date } });
-    }
+//     if (date) {
+//       criteria.push({ 'stations.dataUpdatedTime': { $gte: date } });
+//     }
     
-    const query: any = criteria.length > 0 ? { $and: criteria } : {};
-    if (criteria.length > 0) {
-      query.$and = criteria;
-      // console.log(query)
-    }
+//     const query: any = criteria.length > 0 ? { $and: criteria } : {};
+//     if (criteria.length > 0) {
+//       query.$and = criteria;
+//       // console.log(query)
+//     }
 
-    const stationDoc = await collections.tms?.findOne(query);
-    return stationDoc ? stationDoc : undefined;
-  } catch (error: unknown) {
-    console.error(error);
-    return undefined;
-  }
-};
+//     const stationDoc = await collections.tms?.findOne(query);
+//     return stationDoc ? stationDoc : undefined;
+//   } catch (error: unknown) {
+//     console.error(error);
+//     return undefined;
+//   }
+// };
 
 
 export async function runAggregation(searchString: string) {
