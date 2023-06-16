@@ -11,118 +11,143 @@ const axiosConf = {
   }
 }
 let fetchedCombinedData: StationData;
-let lastFetchedTime: Date;
-export const fetch = async (url: String): Promise<mongoDB.Document | unknown> => {
-  try {
-    const response: AxiosResponse = await axios.get(url, axiosConf)
-    const response2: AxiosResponse = await axios.get(process.env.TMS_STATION_LIST_URL || "https://tie.digitraffic.fi/api/tms/v1/stations")  
-    
-    // Filter out station data with sensor values from response
-    const stationDataFetched = response.data.stations.map( (station: any) => {
-      return {
-        stationId: station.id,
-        dataUpdatedTime: station.dataUpdatedTime,
-        tmsNumber : station.tmsNumber,
-        sensorValues: station.sensorValues.map( (sensor: any) => {
-          return {
-            stationId: sensor.stationId,
-            name: sensor.name,
-            shortName: sensor.shortName,
-            timeWindowStart: sensor.timeWindowStart,
-            timeWindowEnd: sensor.timeWindowEnd,
-            measuredTime: sensor.measuredTime,
-            unit: sensor.unit,
-            value: sensor.value
-          }
-        })
-      }
-    })
-    // Filter out station names and coordinates from response2
-    const stationsListFetched = response2.data.features.map((location: any) => {
-      return {
-        id: location.id,
-        geometry: {
-          coordinates: location.geometry.coordinates
-        },
-        properties: {
-          id: location.properties.id,
-          tmsNumber: location.properties.tmsNumber,
-          name: location.properties.name,
-          dataUpdatedTime: location.properties.dataUpdatedTime
-        }
-      }
-    });
-    
-    // Combine the required data from both responses into one object
-    const combinedData: StationData = {
-      // mongoDB will generate an id automatically // id: new ObjectId, 
-      dataUpdatedTime: new Date(Date.now()).toISOString(),
-      stations: stationDataFetched.map((station: any) => {
-        const matchingStation = stationsListFetched.find((location: any) => location.id === station.stationId);
-    
-        return {
-          id: matchingStation.id,
-          tmsNumber: station.tmsNumber,
-          dataUpdatedTime: station.dataUpdatedTime,
-          name: matchingStation.properties.name,
-          coordinates: [matchingStation.geometry.coordinates[1],matchingStation.geometry.coordinates[0]],
-          sensorValues: station.sensorValues
-        };
-      })
-    };
-    fetchedCombinedData = combinedData;
-    await storeFetch(fetchedCombinedData);
-    
-    await runAggregation("OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1")
+const updatedTime = new Date(Date.now());
 
-    // Return the fetched data in combined form for use in redis and mongoDB...
-    return combinedData;
-  } catch (error) {
-    console.log(error);
-    throw error
+export const fetch = async (url: String): Promise<mongoDB.Document | unknown> => {
+  const collectionCount = await collections.tms?.countDocuments({});
+  const isCollectionEmpty = collectionCount === 0;
+  if ((updatedTime.getTime() - (new Date().getTime()) > 5*60*1000) || isCollectionEmpty) {
+    try {
+      const response: AxiosResponse = await axios.get(url, axiosConf)
+      const response2: AxiosResponse = await axios.get(process.env.TMS_STATION_LIST_URL || "https://tie.digitraffic.fi/api/tms/v1/stations")  
+      
+      // Filter out station data with sensor values from response
+      const stationDataFetched = response.data.stations.map( (station: any) => {
+        return {
+          stationId: station.id,
+          dataUpdatedTime: station.dataUpdatedTime,
+          tmsNumber : station.tmsNumber,
+          sensorValues: station.sensorValues.map( (sensor: any) => {
+            return {
+              stationId: sensor.stationId,
+              name: sensor.name,
+              shortName: sensor.shortName,
+              timeWindowStart: sensor.timeWindowStart,
+              timeWindowEnd: sensor.timeWindowEnd,
+              measuredTime: sensor.measuredTime,
+              unit: sensor.unit,
+              value: sensor.value
+            }
+          })
+        }
+      })
+      // Filter out station names and coordinates from response2
+      const stationsListFetched = response2.data.features.map((location: any) => {
+        return {
+          id: location.id,
+          geometry: {
+            coordinates: location.geometry.coordinates
+          },
+          properties: {
+            id: location.properties.id,
+            tmsNumber: location.properties.tmsNumber,
+            name: location.properties.name,
+            dataUpdatedTime: location.properties.dataUpdatedTime
+          }
+        }
+      });
+      
+      // Combine the required data from both responses into one object
+      const combinedData: StationData = {
+        // mongoDB will generate an id automatically // id: new ObjectId, 
+        dataUpdatedTime: new Date(Date.now()).toISOString(),
+        stations: stationDataFetched.map((station: any) => {
+          const matchingStation = stationsListFetched.find((location: any) => location.id === station.stationId);
+      
+          return {
+            id: matchingStation.id,
+            tmsNumber: station.tmsNumber,
+            dataUpdatedTime: station.dataUpdatedTime,
+            name: matchingStation.properties.name,
+            coordinates: [matchingStation.geometry.coordinates[1],matchingStation.geometry.coordinates[0]],
+            sensorValues: station.sensorValues
+          };
+        })
+      };
+      fetchedCombinedData = combinedData;
+      await storeFetch(fetchedCombinedData);
+      
+      // await runAggregation("OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1")
+
+      // Return the fetched data in combined form for use in redis and mongoDB...
+      return combinedData;
+    } catch (error) {
+      console.log(error);
+      throw error
+    }
+  }
+  else {
+    console.log("******Using cached data - Data was just fetched 5 minutes ago\n******");
   }
 }
-
 const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mongoDB.Document> | unknown>  => {
-  try {
-    const timeTofetchNewData = false;
+  
+  const collectionCount = await collections.tms?.countDocuments({});
+  const isCollectionEmpty = collectionCount === 0;
+  if ((updatedTime.getTime() - (new Date().getTime()) > 5*60*1000) || isCollectionEmpty) {
+    try {
+      let time_To_Insert_New_Data = false;
+      const currentDate = new Date();
+      const currentHour = currentDate.getHours();
+      const currentMinute = currentDate.getMinutes();
 
-    if (!timeTofetchNewData) {
-      const result = await collections.tms?.updateOne(
-        {
-          dataUpdatedTime: { $lt: data.dataUpdatedTime },
-          // 'stations.sensorValues.name': 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2'
-        },
-        [
+      if (currentHour === 9 && currentMinute === 0){
+        time_To_Insert_New_Data = true;
+      }
+      else{
+        time_To_Insert_New_Data = false;
+      }
+      
+      
+      
+      if (time_To_Insert_New_Data || isCollectionEmpty) {
+        const result = await collections.tms?.insertOne(data);
+        console.log("******Inserted into Mongo\n******");
+        if (!result) {
+          throw new Error('Failed to insert data into MongoDB');
+        }
+      } else {
+        const result = await collections.tms?.updateOne(
+          {
+            dataUpdatedTime: { $gt: updatedTime },
+            // 'stations.sensorValues.name': 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2'
+          },
           {
             $set: {
               data: data
             }
           },
           {
-            $replaceRoot: {
-              newRoot: '$data'
-            }
+            upsert: true
           }
-        ],
-        {
-          upsert: true
+        );
+        console.log("******Updated Mongo\n******");
+        if (!result) {
+          throw new Error('Failed to update data into MongoDB');
         }
+      }
+      
+      
 
-      );
-      if (!result) {
-        throw new Error('Failed to insert data into MongoDB');
-        }
-    } else {
+      // return await getStore();
 
+      } catch (error: unknown) {
+        console.error(error)
+      return error
     }
-
-
-    // return await getStore();
-
-    } catch (error: unknown) {
-      console.error(error)
-    return error
+  }
+  else {
+    console.log("******No need to update Mongo\n******5 minutes not passed\n******")
   }
 }
 
