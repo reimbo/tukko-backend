@@ -78,9 +78,12 @@ export const fetch = async (url: String): Promise<mongoDB.Document | unknown> =>
       await storeFetch(fetchedCombinedData);
       
       // await runAggregation("OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1")
-
+      
+      // Increase the next update time by 5 minutes
+      updatedTime.setMinutes(updatedTime.getMinutes() + 5);
       // Return the fetched data in combined form for use in redis and mongoDB...
       return combinedData;
+    
     } catch (error) {
       console.log(error);
       throw error
