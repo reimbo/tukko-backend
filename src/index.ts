@@ -2,6 +2,7 @@ import express, { Express } from 'express';
 import { tmsRouter } from './routes/tms_data'; 
 import { connect} from './scripts/mongo';
 import { fetch, runAggregation } from "./scripts/fetch";
+require('dotenv').config();
 
 const app: Express = express();
 app.use(express.json());
@@ -24,4 +25,4 @@ connect()
     process.exit();
   });
   
-fetch("https://tie.digitraffic.fi/api/tms/v1/stations/data").then((data: any) => { console.log(data.stations[0].sensorValues[0]) })
+fetch(process.env.TMS_STATIONS_DATA_URL || "https://tie.digitraffic.fi/api/tms/v1/stations/data")

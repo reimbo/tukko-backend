@@ -3,6 +3,7 @@ import * as mongoDB from "mongodb"
 import { collections} from "../scripts/mongo";
 import {  StationData } from "models/tms_data_model";
 import { AxiosResponse } from "axios";
+require('dotenv').config();
 
 const axiosConf = {
   headers: {
@@ -10,10 +11,11 @@ const axiosConf = {
   }
 }
 let fetchedCombinedData: StationData;
+let lastFetchedTime: Date;
 export const fetch = async (url: String): Promise<mongoDB.Document | unknown> => {
   try {
     const response: AxiosResponse = await axios.get(url, axiosConf)
-    const response2: AxiosResponse = await axios.get("https://tie.digitraffic.fi/api/tms/v1/stations")  
+    const response2: AxiosResponse = await axios.get(process.env.TMS_STATION_LIST_URL || "https://tie.digitraffic.fi/api/tms/v1/stations")  
     
     // Filter out station data with sensor values from response
     const stationDataFetched = response.data.stations.map( (station: any) => {
@@ -84,36 +86,38 @@ export const fetch = async (url: String): Promise<mongoDB.Document | unknown> =>
 
 const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mongoDB.Document> | unknown>  => {
   try {
-   
+    const timeTofetchNewData = false;
 
-    const result = await collections.tms?.updateOne(
-      {
-        dataUpdatedTime: { $lt: data.dataUpdatedTime },
-        // 'stations.sensorValues.name': 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2'
-      },
-      [
+    if (!timeTofetchNewData) {
+      const result = await collections.tms?.updateOne(
         {
-          $set: {
-            data: data
-          }
+          dataUpdatedTime: { $lt: data.dataUpdatedTime },
+          // 'stations.sensorValues.name': 'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2'
         },
-        {
-          $replaceRoot: {
-            newRoot: '$data'
+        [
+          {
+            $set: {
+              data: data
+            }
+          },
+          {
+            $replaceRoot: {
+              newRoot: '$data'
+            }
           }
+        ],
+        {
+          upsert: true
         }
-      ],
-      {
-        upsert: true
-      }
-    );
 
+      );
+      if (!result) {
+        throw new Error('Failed to insert data into MongoDB');
+        }
+    } else {
 
-    
-    
-    if (!result) {
-      throw new Error('Failed to insert data into MongoDB');
-      }
+    }
+
 
     // return await getStore();
 
