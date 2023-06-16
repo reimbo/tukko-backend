@@ -70,14 +70,13 @@ export const fetch = async (url: String): Promise<mongoDB.Document | unknown> =>
         };
       })
     };
-    console.log(combinedData.stations[0].sensorValues[0].measuredTime)
     fetchedCombinedData = combinedData;
     await storeFetch(fetchedCombinedData);
     
     await runAggregation("OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1")
 
     // Return the fetched data in combined form for use in redis and mongoDB...
-    return fetchedCombinedData;
+    return combinedData;
   } catch (error) {
     console.log(error);
     throw error
