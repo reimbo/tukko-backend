@@ -25,4 +25,3 @@ connect()
     process.exit();
   });
 fetch("https://tie.digitraffic.fi/api/tms/v1/stations/data")
-// fetch("https://tie.digitraffic.fi/api/tms/v1/stations")
