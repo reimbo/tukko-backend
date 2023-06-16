@@ -8,7 +8,6 @@ app.use(express.json());
 const port: number = parseInt(process.env.PORT as string);
 
 const searchString = "KESKINOPEUS_5MIN_LIUKUVA_SUUNTA2";
-
 connect()
   .then(async (): Promise<void> => {
     app.use("/tms", tmsRouter);
@@ -24,4 +23,5 @@ connect()
     console.error("Database connection failed", error);
     process.exit();
   });
-fetch("https://tie.digitraffic.fi/api/tms/v1/stations/data")
+  
+fetch("https://tie.digitraffic.fi/api/tms/v1/stations/data").then((data: any) => { console.log(data.stations[0].sensorValues[0]) })

@@ -3,7 +3,6 @@ import * as mongoDB from "mongodb"
 import { collections} from "../scripts/mongo";
 import {  StationData } from "models/tms_data_model";
 import { AxiosResponse } from "axios";
-import { ObjectId } from "mongodb";
 
 const axiosConf = {
   headers: {
@@ -69,14 +68,14 @@ export const fetch = async (url: String): Promise<mongoDB.Document | unknown> =>
         };
       })
     };
-    
+    console.log(combinedData.stations[0].sensorValues[0].measuredTime)
     fetchedCombinedData = combinedData;
     await storeFetch(fetchedCombinedData);
     
     await runAggregation("OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1")
 
     // Return the fetched data in combined form for use in redis and mongoDB...
-    return combinedData;
+    return fetchedCombinedData;
   } catch (error) {
     console.log(error);
     throw error
@@ -85,26 +84,6 @@ export const fetch = async (url: String): Promise<mongoDB.Document | unknown> =>
 
 const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mongoDB.Document> | unknown>  => {
   try {
-    // const existingData = await getStore("23172") as mongoDB.Document | undefined;
-    // console.log(existingData && existingData[0].dataUpdatedTime instanceof Date ? existingData[0].dataUpdatedTime.toDateString() : undefined);
-    // console.log(existingData)
-    // if (existingData && existingData.dataUpdatedTime instanceof Date) {
-    //   const currentDate = new Date();
-
-    //   if (
-    //     existingData.dataUpdatedTime.getDate() === currentDate.getDate() &&
-    //     existingData.dataUpdatedTime.getMonth() === currentDate.getMonth() &&
-    //     existingData.dataUpdatedTime.getFullYear() === currentDate.getFullYear()
-    //   ) {
-    //     console.log('Data is already up to date. Skipping update.');
-    //     return existingData;
-    //   }
-    // }
-  
-
-    // console.log(typeof(stations[0].dataUpdatedTime))
-    // console.log(data.dataUpdatedTime)
-    // console.log(stations.length)
    
 
     const result = await collections.tms?.updateOne(
