@@ -1,14 +1,17 @@
 import express, { Express } from 'express';
 import { tmsRouter } from './routes/tms_data'; 
 import { connect} from './scripts/mongo';
-import { fetch, runAggregation } from "./scripts/fetch";
+import { fetch,addToMongoDB, runAggregation } from "./scripts/fetch";
+import { StationData } from './models/tms_data_model';
+import { checkFetchTime } from './scripts/checkFetchTime';
 require('dotenv').config();
 
 const app: Express = express();
 app.use(express.json());
 const port: number = parseInt(process.env.PORT as string);
+export const currentUpdateTime = new Date(); 
+const searchString = "KESKINOPEUS_5MIN_LIUKUVA_SUUNTA2"; // for testing purposes
 
-const searchString = "KESKINOPEUS_5MIN_LIUKUVA_SUUNTA2";
 connect()
   .then(async (): Promise<void> => {
     app.use("/tms", tmsRouter);
@@ -17,6 +20,12 @@ connect()
       console.log(`Server running on port ${port}`);
     });
 
+    // Only fetch if data is not up-to-date or at least 5 minutes have passed since the last fetch
+    if(checkFetchTime()){
+      const data:StationData = await fetch(process.env.TMS_STATIONS_DATA_URL || "https://tie.digitraffic.fi/api/tms/v1/stations/data") as StationData;
+      // ... addToRedis function here
+      addToMongoDB(data)
+    }
     // await runAggregation(searchString)
 
   })
@@ -25,4 +34,3 @@ connect()
     process.exit();
   });
   
-fetch(process.env.TMS_STATIONS_DATA_URL || "https://tie.digitraffic.fi/api/tms/v1/stations/data")

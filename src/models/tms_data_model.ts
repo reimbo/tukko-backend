@@ -2,13 +2,13 @@ import { ObjectId } from "mongodb";
 
 
 export interface Sensor {
-  id?:  number,
-  stationId?: number,
+  id:  number,
+  stationId: number,
   name: string,
   shortName: string,  
-  timeWindowStart?: Date | string,
-  timeWindowEnd?: Date | string,
-  measuredTime: Date | string,
+  timeWindowStart?:  string,
+  timeWindowEnd?:  string,
+  measuredTime: string,
   unit: string,  
   sensorValueDescriptionFi?: string,
   sensorValueDescriptionEn?: string,
@@ -16,16 +16,15 @@ export interface Sensor {
 }
 
 export interface Station {
-  id?: number,
+  id: number,
   tmsNumber: number,
-  dataUpdatedTime: Date | string,
+  dataUpdatedTime: string,
   name: string,
   coordinates: number[],
   sensorValues: Sensor[]
 }
 
 export interface StationData {
-  id?: ObjectId,
-  dataUpdatedTime: Date | string,
+  dataUpdatedTime: string,
   stations: Station[]
 }
