@@ -1,7 +1,9 @@
 import express, { Express } from 'express';
 import { tmsRouter } from './routes/tms_data'; 
 import { connect} from './scripts/mongo';
-import { fetch,addToMongoDB, runAggregation } from "./scripts/fetch";
+import { fetch } from "./scripts/fetch";
+import { addToMongoDB, runAggregation } from "./scripts/saveToMongo";
+
 import { StationData } from './models/tms_data_model';
 import { checkFetchTime } from './scripts/checkFetchTime';
 require('dotenv').config();
@@ -26,7 +28,7 @@ connect()
       // ... addToRedis function here
       addToMongoDB(data)
     }
-    await runAggregation(searchString)
+    // await runAggregation(searchString)
 
   })
   .catch((error: Error): void => {
