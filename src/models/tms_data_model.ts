@@ -1,26 +1,30 @@
 import { ObjectId } from "mongodb";
 
+
 export interface Sensor {
-  id?: ObjectId,
-  stationId?: ObjectId,
+  id:  number,
+  stationId: number,
   name: string,
-  shortName: string,
-  timeWindowStart: Date,
-  timeWindowEnd: Date,
-  measuredTime: Date,
-  unit: string,
+  shortName: string,  
+  timeWindowStart?:  string,
+  timeWindowEnd?:  string,
+  measuredTime: string,
+  unit: string,  
+  sensorValueDescriptionFi?: string,
+  sensorValueDescriptionEn?: string,
   value: number
 }
 
 export interface Station {
-  id?: ObjectId,
+  id: number,
   tmsNumber: number,
-  dataUpdatedTime: Date
+  dataUpdatedTime: string,
+  name: string,
+  coordinates: number[],
   sensorValues: Sensor[]
 }
 
 export interface StationData {
-  id?: ObjectId,
-  dataUpdatedTime: Date,
+  dataUpdatedTime: string,
   stations: Station[]
 }
