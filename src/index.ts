@@ -26,7 +26,7 @@ connect()
       // ... addToRedis function here
       addToMongoDB(data)
     }
-    // await runAggregation(searchString)
+    await runAggregation(searchString)
 
   })
   .catch((error: Error): void => {
