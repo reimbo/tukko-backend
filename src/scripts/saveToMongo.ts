@@ -24,7 +24,7 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
             
             if (latestObj) {
                 try {
-                    // console.log("******Latest Object\n******", latestObj[0].stations[0])
+                    console.log("******Latest Object\n******", latestObj[0].stations[0])
                     const result = await collections.tms?.updateOne(
                     { _id: latestObj[0]._id }, // Specify the document to update using its _id
                     { $set: data  } 
