@@ -123,7 +123,7 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
           },
           {
             sort: { dataUpdatedTime: -1 }, // Sort in descending order based on dataUpdatedTime
-            upsert: true
+            // upsert: true
           }
         );
         console.log("******Updated Mongo\n******");
