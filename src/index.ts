@@ -6,7 +6,8 @@ import { addToMongoDB, runAggregation } from "./scripts/saveToMongo";
 
 import { StationData } from './models/tms_data_model';
 import { checkFetchTime } from './scripts/checkFetchTime';
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app: Express = express();
 app.use(express.json());
@@ -21,7 +22,6 @@ connect()
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
-
     // Only fetch if data is not up-to-date or at least 5 minutes have passed since the last fetch
     if(checkFetchTime()){
       const data:StationData = await fetch(process.env.TMS_STATIONS_DATA_URL || "https://tie.digitraffic.fi/api/tms/v1/stations/data") as StationData;
