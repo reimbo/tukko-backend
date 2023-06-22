@@ -5,7 +5,6 @@ const localStorage = new LocalStorage('./scratch');
 
 // Retrieve the lastFetchTime from localStorage
 export const lastFetchTime = localStorage.getItem('lastFetchTime');
-// export let insertToken = localStorage.getItem('insertToken');
 export let time_To_Insert_New_Data = false;
 
 // Get the current time
@@ -34,8 +33,6 @@ const isNewDay = (prevTime:string) => {
     const lastFetchMonth = lastFetchDate.getMonth();
     const lastFetchDay = lastFetchDate.getDate();
     if(checkNewDayHasPassedSinceLastFetch(currentHour, currentMinute, lastFetchYear, lastFetchMonth, lastFetchDay)){
-        // insertToken = '1';
-        // localStorage.setItem('insertToken', insertToken);
         return true;
     } else {
         return false;
@@ -60,7 +57,6 @@ export function checkNewDayHasPassedSinceLastFetch(currentHour:number, currentMi
             (lastFetchYear <= currentYear 
             && lastFetchMonth <= currentMonth 
             && lastFetchDay < currentDay)){
-                // insertToken = '1';
                 console.log("New day has passed since last fetch. \nStart fetching and inserting new record into Mongodb...\n")
                 return true;
             }
@@ -72,27 +68,17 @@ export function checkNewDayHasPassedSinceLastFetch(currentHour:number, currentMi
 
 // Check if the lastFetchTime exists and if 5 minutes have passed
 export function checkFetchTime() {
-    // If there is no insertToken, set it to '1' to allow new data insertion
-    // if(!insertToken){
-    //     insertToken = '1';
-    //     localStorage.setItem("insertToken", insertToken);
-    // }
     // If there is no lastFetchTime, set it to previous day and return true
     if (!lastFetchTime) {
         console.log("No lastFetchTime found in localStorage.\nStart fetching...\n");
         time_To_Insert_New_Data = true;
         return true;
     } else {
-        
         const fiveMinutesInMs = 5 * 60 * 1000;
-        if (isNewDay(lastFetchTime)
-            // && (insertToken === '1') 
-            )
+        if (isNewDay(lastFetchTime))
             {
                 time_To_Insert_New_Data = true;
-                // insertToken = '0';
-                // localStorage.setItem('insertToken', insertToken);
-        }
+            }
 
         if (
             timeDiff(lastFetchTime) > fiveMinutesInMs 
