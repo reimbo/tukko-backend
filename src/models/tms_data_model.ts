@@ -18,9 +18,9 @@ export interface Sensor {
 export interface Station {
   id: number,
   tmsNumber: number,
-  dataUpdatedTime: string,
-  name: string,
   coordinates: number[],
+  name: string,
+  dataUpdatedTime: string,
   sensorValues: Sensor[]
 }
 
