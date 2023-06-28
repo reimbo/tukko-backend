@@ -22,9 +22,9 @@ let stationsUpdateTimestamp = new Date(0);
 // IDs of active stations containing sensors values
 let stationIds = new Set<string>();
 // IDs of sensors with 5 min measurement rate
-const fastExpireSensorIDs = new Set<number>([5152, 5125, 5158, 5161, 5058, 5061, 5116, 5119, 5164, 5168, 5064, 5068]);
+const fastExpireSensorIDs = new Set<number>([5016, 5019, 5022, 5025, 5058, 5061, 5064, 5068, 5116, 5119, 5122, 5125, 5152, 5158, 5161, 5164, 5168]);
 // IDs of sensors with 60 min measurement rate
-const slowExpireSensorIDs = new Set<number>([5056, 5057, 5054, 5055, 5067, 5071]);
+const slowExpireSensorIDs = new Set<number>([5054, 5055, 5056, 5057, 5067, 5071]);
 
 // Helper function to check if data has been updated, as well as to update local timestamps
 async function isDataUpdated(url: string, dataType: string) {
