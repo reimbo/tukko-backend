@@ -134,6 +134,7 @@ describe('fetch-test', () => {
             
             expect(OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1.name === 'OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1').toBe(true);
             expect(OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1.unit === '***').toBe(true);
+            
             expect(OHITUKSET_60MIN_KIINTEA_SUUNTA1_MS1.name === 'OHITUKSET_60MIN_KIINTEA_SUUNTA1_MS1').toBe(true);
             expect(OHITUKSET_60MIN_KIINTEA_SUUNTA1_MS1.unit === '***').toBe(true);
             
