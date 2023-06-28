@@ -43,7 +43,7 @@ require('dotenv').config();
 import express from 'express';
 const swaggerUi = require('swagger-ui-express');
 import { swaggerSpec } from './scripts/swagger';
-import { loadData, loadRoadData } from './scripts/redis/loadData';
+import { loadData, loadSensorData } from './scripts/redis/loadData';
 import { stations } from './routes/redis/stations';
 import { sensors } from './routes/redis/sensors';
 import { scheduleScript } from './scripts/schedule';
@@ -64,6 +64,6 @@ app.use('/sensors', sensors);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Schedule data loading processes for Redis database with time intervals defined in milliseconds
-scheduleScript(loadRoadData, 0, 60000 * 60 * 12 /* =12h */);
-scheduleScript(loadData, 60000 * 5 /* =5min */, 60000 /* =1min */);
+scheduleScript(loadData, 0, 60000 * 60 * 12 /* =12h */);
+scheduleScript(loadSensorData, 60000 * 5 /* =5min */, 60000 /* =1min */);
 // -----------------------------------------------------------------------------------------------

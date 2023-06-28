@@ -1,3 +1,4 @@
+require('dotenv').config();
 const axios = require('axios').default;
 import { AxiosResponse } from 'axios';
 import { stationRepository, sensorRepository } from './client';
@@ -15,54 +16,73 @@ const axiosConf = {
 };
 
 // Global helper variables
-let latestSensorsTimestamp = new Date(0);
-let latestStationsTimestamp = new Date(0);
-let filteredStationIds: string[] = [];
+let sensorsUpdateTimestamp = new Date(0);
+let stationsUpdateTimestamp = new Date(0);
+let stationIds = new Set<string>();
+
+// Helper function to check if data has been updated, as well as to update local timestamps
+async function isDataUpdated(url: string, dataType: string) {
+  // Fetch dataUpdatedTime
+  const response: AxiosResponse = await axios.get(
+    url, {
+    ...axiosConf,
+    params: { lastUpdated: true }
+  });
+  const fetchedDataTimestamp = new Date(response.data.dataUpdatedTime);
+  if (dataType === 'sensor' && fetchedDataTimestamp > sensorsUpdateTimestamp) {
+    // Update timestamp
+    sensorsUpdateTimestamp = fetchedDataTimestamp;
+    return true;
+  }
+  if (dataType === 'station' && fetchedDataTimestamp > stationsUpdateTimestamp) {
+    // Update timestamp
+    stationsUpdateTimestamp = fetchedDataTimestamp;
+    return true;
+  }
+  return false;
+}
 
 // Function to load sensors
 async function loadSensors(url: string) {
-  // Reset station IDs
-  filteredStationIds = [];
-
   let sensorsCount = 0;
   try {
     console.log('Fetching and storing sensors...');
-    // Fetch sensors
-    const response: AxiosResponse = await axios.get(url, axiosConf);
     // Check if data has been updated
-    const fetchedDataTimestamp = new Date(response.data.dataUpdatedTime);
-    if (fetchedDataTimestamp > latestSensorsTimestamp) {
-      latestSensorsTimestamp = fetchedDataTimestamp;
+    if (await isDataUpdated(url, 'sensor')) {
+      // Fetch data
+      let response: AxiosResponse = await axios.get(url, axiosConf);
       // Save sensors to the repository
       for (const station of response.data.stations) {
-        for (const sensor of station.sensorValues) {
-          await sensorRepository.save(`${station.id}:${sensor.id}`,{
-            id: sensor.id,
-            stationId: sensor.stationId,
-            name: sensor.name,
-            timeWindowStart: sensor.timeWindowStart,
-            timeWindowEnd: sensor.timeWindowEnd,
-            measuredTime: sensor.measuredTime,
-            unit: sensor.unit,
-            value: sensor.value
-          });
-          sensorsCount++;
-          // Create list of station IDs for further filtering
-          if (!filteredStationIds.includes(sensor.stationId)) {
-            filteredStationIds.push(sensor.stationId);
+        const sensors = station.sensorValues
+        if (sensors.length !== 0) {
+          for (const sensor of sensors) {
+            // Set entity ID as "stationID:sensorID" while saving
+            await sensorRepository.save(`${station.id}:${sensor.id}`, {
+              id: sensor.id,
+              stationId: sensor.stationId,
+              name: sensor.name,
+              timeWindowStart: sensor.timeWindowStart,
+              timeWindowEnd: sensor.timeWindowEnd,
+              measuredTime: sensor.measuredTime,
+              unit: sensor.unit,
+              value: sensor.value
+            });
+            sensorsCount++;
           }
+          // Generate a set of unique station IDs
+          stationIds.add(station.id);
+        }
+        else {
+          // If the station does not include any sensor values, delete its ID from the set
+          stationIds.delete(station.id);
         }
       }
-      // Create index in the repository for efficient searching
-      await sensorRepository.createIndex();
-    }
-    else {
-      console.log('Redis already contatins latest sensors.');
+    } else {
+      console.log('Redis already contatins the latest sensor data.');
     }
   } catch (error: any) {
     throw new Error('Error loading sensors: ' + error.message);
-  }
-  finally {
+  } finally {
     console.log(`Stored ${sensorsCount} sensors.`);
   }
 }
@@ -72,113 +92,58 @@ async function loadStations(url: string) {
   let stationsCount = 0;
   try {
     console.log('Fetching and storing stations...');
-    // Fetch stations
-    const response: AxiosResponse = await axios.get(url, axiosConf);
-    // Check if data has been updated
-    const fetchedDataTimestamp = new Date(response.data.dataUpdatedTime);
-    if (fetchedDataTimestamp > latestSensorsTimestamp || fetchedDataTimestamp > latestStationsTimestamp) {
-      latestStationsTimestamp = fetchedDataTimestamp;
-      // Save stations to the repository
-      for (const station of response.data.features) {
-        if (station.properties.collectionStatus === 'GATHERING' && filteredStationIds.includes(station.id)) {
-          // Set entity ID as station ID while saving
-          await stationRepository.save(`${station.id}`, {
-            id: station.id,
-            tmsNumber: station.properties.tmsNumber,
-            name: station.properties.name,
-            dataUpdatedTime: station.properties.dataUpdatedTime,
-            coordinates: {
-              longitude: station.geometry.coordinates[0],
-              latitude: station.geometry.coordinates[1]
-            }
-          });
-          stationsCount++;
-        }
+    // Check if station data has been updated
+    if (await isDataUpdated(url, 'station') && stationIds.size !== 0) {
+      // Fetch data for each station ID and save it to the repository
+      for (const stationId of stationIds) {
+        const response: AxiosResponse = await axios.get(`${url}/${stationId}`, axiosConf);
+        const station = response.data;
+        // Set entity ID as "stationID"
+        await stationRepository.save(`${station.id}`, {
+          id: station.id,
+          tmsNumber: station.properties.tmsNumber,
+          name: station.properties.name,
+          dataUpdatedTime: station.properties.dataUpdatedTime,
+          coordinates: {
+            longitude: station.geometry.coordinates[0],
+            latitude: station.geometry.coordinates[1]
+          },
+          roadNumber: station.properties.roadAddress.roadNumber,
+          roadSection: station.properties.roadAddress.roadSection,
+          carriageway: station.properties.roadAddress.carriageway,
+          side: station.properties.roadAddress.side,
+          municipality: station.properties.municipality,
+          municipalityCode: station.properties.municipalityCode,
+          province: station.properties.province,
+          provinceCode: station.properties.provinceCode,
+          direction1Municipality: station.properties.direction1Municipality,
+          direction1MunicipalityCode: station.properties.direction1MunicipalityCode,
+          direction2Municipality: station.properties.direction2Municipality,
+          direction2MunicipalityCode: station.properties.direction2MunicipalityCode,
+          sensors: station.sensors
+        });
+        stationsCount++;
+        //await delayBy(1500); // =1.5s intervals
       }
-      // Create index in the repository for efficient searching
-      await stationRepository.createIndex();
-    }
-    else {
-      console.log('Redis already contatins latest stations.');
+    } else {
+      console.log('Redis already contatins the latest station data.');
     }
   } catch (error: any) {
-    throw new Error('Error loading station: ' + error.message);
-  }
-  finally {
+    throw new Error('Error loading stations: ' + error.message);
+  } finally {
     console.log(`Stored ${stationsCount} stations.`);
   }
 }
 
-// Function to update existing station entities with load road data
-async function updateStationsWithRoadData(url: string) {
-  let stations = 0;
-  try {
-    if (filteredStationIds.length !== 0) {
-      console.log('Fetching and storing road data...');
-      // Fetch data for each station
-      for (const stationId of filteredStationIds) {
-        const response: AxiosResponse = await axios.get(`${url}/${stationId}`, axiosConf);
-        const station = response.data.properties;
-        // Get existing station entity form Redis
-        const stationEntity = await stationRepository.fetch(stationId);
-        // If found, update the entity with new values
-        if (stationEntity) {
-          await stationRepository.save(`${station.id}`, {
-            id: station.id,
-            tmsNumber: stationEntity.tmsNumber,
-            name: stationEntity.name,
-            dataUpdatedTime: stationEntity.dataUpdatedTime,
-            coordinates: stationEntity.coordinates,
-            roadNumber: station.roadAddress.roadNumber,
-            roadSection: station.roadAddress.roadSection,
-            carriageway: station.roadAddress.carriageway,
-            side: station.roadAddress.side,
-            municipality: station.municipality,
-            municipalityCode: station.municipalityCode,
-            province: station.province,
-            provinceCode: station.provinceCode,
-            direction1Municipality: station.direction1Municipality,
-            direction1MunicipalityCode: station.direction1MunicipalityCode,
-            direction2Municipality: station.direction2Municipality,
-            direction2MunicipalityCode: station.direction2MunicipalityCode,
-            sensors: station.sensors
-          });
-          stations++;
-          //await delayBy(1500); // =1.5s intervals
-        }
-      }
-    }
-    else {
-      console.log("Failed. Sensors and stations should be fetched before fetching road data.");
-    }
-  } catch (error: any) {
-    throw new Error('Error updating stations with road data: ' + error.message);
-  }
-  finally {
-    console.log(`Updated ${stations} stations.`);
-  }
-}
-
-// Function to load all data excluding road data
+// Function to load all data
 export async function loadData() {
-  try {
-    // Load stations and sensors data
-    await loadSensors(urlSensors);
-    await loadStations(urlStations);
-  } catch (error: any) {
-    throw new Error('Error loading data: ' + error.message);
-  }
+  // Load stations and sensors data
+  await loadSensors(urlSensors);
+  await loadStations(urlStations);
 }
 
-// Function to load all data including road data
-export async function loadRoadData() {
-  try {
-    // Load stations and sensors data
-    await loadSensors(urlSensors);
-    await loadStations(urlStations);
-    // Load road data
-    await updateStationsWithRoadData(urlStations);
-  } catch (error: any) {
-    throw new Error('Error loading road data: ' + error.message);
-  }
+// Function to load sensor data
+export async function loadSensorData() {
+  // Load stations and sensors data
+  await loadSensors(urlSensors);
 }

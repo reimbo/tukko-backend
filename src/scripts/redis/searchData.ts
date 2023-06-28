@@ -13,7 +13,7 @@ async function searchStationById(id: string, includeSensors: string) {
         // Return null if object is empty
         if (Object.keys(stationEntity).length === 0) return null;
         const station: any[] = [stationEntity];
-        // Convert includeSensor into bool
+        // Convert includeSensors into bool
         const includeSensorsBool = includeSensors === 'false' ? false : true;
         // Update station with sensor values
         await updateStationsWithSensors(station, includeSensorsBool);
@@ -22,13 +22,13 @@ async function searchStationById(id: string, includeSensors: string) {
     } catch (error: any) {
         throw new Error('Error searching station by ID: ' + error.message);
     }
-};
+}
 
 // Search for stations based on provided parameters
 async function searchStations(params: ParsedQs, includeSensors: string) {
     try {
         let stations: any[] = [];
-        // Convert includeSensor into bool
+        // Convert includeSensors into bool
         const includeSensorsBool = includeSensors === 'false' ? false : true;
         // Build dictionary for station params
         const stationParamsDict = buildParamsDictionary(params, stationParams);
