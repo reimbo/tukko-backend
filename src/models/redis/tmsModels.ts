@@ -11,8 +11,6 @@ export const stationSchema = new Schema('station', {
   // state: { type: 'string' },
   // geometryType: { type: 'string' },
   coordinates: { type: 'point' },
-
-  // Properties below are retreived from /stations/{id} route with intervals of 24h
   roadNumber: { type: 'number', sortable: true },
   roadSection: { type: 'number', sortable: true },
   // distanceFromRoadSectionStart: { type: 'number' },
@@ -29,8 +27,6 @@ export const stationSchema = new Schema('station', {
   direction2MunicipalityCode: { type: 'number', sortable: true },
   // freeFlowSpeed1: { type: 'number', sortable: true },
   // freeFlowSpeed2: { type: 'number', sortable: true },
-
-  // Sensors
   sensors: { type: 'string[]' }
 });
 
