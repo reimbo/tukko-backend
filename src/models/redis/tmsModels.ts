@@ -1,8 +1,7 @@
 import { Repository, Schema } from 'redis-om';
-import client from '../../scripts/redis/client';
 
 // Redis schema for storing stations
-const stationSchema = new Schema('station', {
+export const stationSchema = new Schema('station', {
   // type: { type: 'string' },
   id: { type: 'number', sortable: true },
   tmsNumber: { type: 'number', sortable: true },
@@ -12,7 +11,6 @@ const stationSchema = new Schema('station', {
   // state: { type: 'string' },
   // geometryType: { type: 'string' },
   coordinates: { type: 'point' },
-  sensorValues: { type: 'string[]' },
 
   // Properties below are retreived from /stations/{id} route with intervals of 24h
   roadNumber: { type: 'number', sortable: true },
@@ -30,12 +28,14 @@ const stationSchema = new Schema('station', {
   direction2Municipality: { type: 'string' },
   direction2MunicipalityCode: { type: 'number', sortable: true },
   // freeFlowSpeed1: { type: 'number', sortable: true },
-  // freeFlowSpeed2: { type: 'number', sortable: true }
+  // freeFlowSpeed2: { type: 'number', sortable: true },
+
+  // Sensors
+  sensors: { type: 'string[]' }
 });
-export const stationRepository = new Repository(stationSchema, client);
 
 // Redis schema for storing sensors
-const sensorSchema = new Schema('sensor', {
+export const sensorSchema = new Schema('sensor', {
   id: { type: 'number', sortable: true },
   stationId: { type: 'number', sortable: true },
   name: { type: 'string' },
@@ -48,4 +48,3 @@ const sensorSchema = new Schema('sensor', {
   // sensorValueDescriptionFi: { type: 'text' },
   // sensorValueDescriptionEn: { type: 'text' }
 });
-export const sensorRepository = new Repository(sensorSchema, client);
