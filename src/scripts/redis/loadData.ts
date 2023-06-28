@@ -2,7 +2,7 @@ require('dotenv').config();
 const axios = require('axios').default;
 import { AxiosResponse } from 'axios';
 import { stationRepository, sensorRepository } from './tmsModels';
-import { delayBy } from '../schedule';
+// import { delayBy } from '../schedule';
 import client from './client';
 
 // Define the URLs for stations and sensors
@@ -137,7 +137,9 @@ async function updateStationsWithRoadData(url: string) {
       for (const stationId of filteredStationIds) {
         const response: AxiosResponse = await axios.get(`${url}/${stationId}`, axiosConf);
         const station = response.data.properties;
+        // Get existing station entity form Redis
         const stationEntity = await stationRepository.fetch(stationId);
+        // If found, update the entity with new values
         if (stationEntity) {
           await stationRepository.save(`${station.id}`, {
             id: station.id,
@@ -167,7 +169,7 @@ async function updateStationsWithRoadData(url: string) {
       console.log("Failed. Sensors and stations should be fetched before fetching road data.");
     }
   } catch (error: any) {
-    throw new Error('Error loading sensors: ' + error.message);
+    throw new Error('Error updating stations with road data: ' + error.message);
   }
   finally {
     console.log(`${stations} stations updated.`);
@@ -184,7 +186,7 @@ export async function loadRoadData() {
     // Load stations and sensors data
     await updateStationsWithRoadData(urlStations);
   } catch (error: any) {
-    throw new Error('Error loading data: ' + error.message);
+    throw new Error('Error loading road data: ' + error.message);
   } finally {
     // Disconnect from Redis
     await client.quit();
