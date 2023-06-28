@@ -6,11 +6,8 @@
   "scripts": {
     "build": "npx tsc -p .",
     "serve": "node dist/index.js",
-<<<<<<< HEAD
     "test": "jest",
-=======
     "dev": "npx tsc -p . && docker compose -f dev-compose.yml up -d --build && node ./dist/index.js",
->>>>>>> dc4b1d5af282ed17802b3c094cf1baadbbd704fe
     "prod": "npx tsc -p . && docker compose -f docker-compose.yml up -d --build"
   },
   "repository": {
