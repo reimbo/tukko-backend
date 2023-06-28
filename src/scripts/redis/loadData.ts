@@ -120,7 +120,7 @@ async function loadStations(url: string) {
           direction1MunicipalityCode: station.properties.direction1MunicipalityCode,
           direction2Municipality: station.properties.direction2Municipality,
           direction2MunicipalityCode: station.properties.direction2MunicipalityCode,
-          sensors: station.sensors
+          sensors: station.properties.sensors
         });
         stationsCount++;
         //await delayBy(1500); // =1.5s intervals
