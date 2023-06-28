@@ -2,7 +2,6 @@ require('dotenv').config();
 const axios = require('axios').default;
 import { AxiosResponse } from 'axios';
 import { stationRepository, sensorRepository } from './client';
-// import { delayBy } from '../schedule';
 
 // Define the URLs for stations and sensors
 const urlStations = (process.env.TMS_STATION_LIST_URL || 'https://tie.digitraffic.fi/api/tms/v1/stations') as string;
@@ -16,9 +15,16 @@ const axiosConf = {
 };
 
 // Global helper variables
+// Latest timestap of sensor data update time
 let sensorsUpdateTimestamp = new Date(0);
+// Latest timestap of station data update time
 let stationsUpdateTimestamp = new Date(0);
+// IDs of active stations containing sensors values
 let stationIds = new Set<string>();
+// IDs of sensors with 5 min measurement rate
+const fastExpireSensorIDs = new Set<number>([5152, 5125, 5158, 5161, 5058, 5061, 5116, 5119, 5164, 5168, 5064, 5068]);
+// IDs of sensors with 60 min measurement rate
+const slowExpireSensorIDs = new Set<number>([5056, 5057, 5054, 5055, 5067, 5071]);
 
 // Helper function to check if data has been updated, as well as to update local timestamps
 async function isDataUpdated(url: string, dataType: string) {
@@ -42,6 +48,17 @@ async function isDataUpdated(url: string, dataType: string) {
   return false;
 }
 
+// Helper function to calculate time to live for sensor keys in Redis
+function calculateTimeToLive(sensor: any) {
+  // Set measurement rate in minutes
+  let minutes = 0;
+  if (fastExpireSensorIDs.has(sensor.id)) { minutes = 5; }
+  else if (slowExpireSensorIDs.has(sensor.id)) { minutes = 60; }
+  // Calculate time in seconds before next measurement
+  const ttlInSeconds = Math.floor((new Date().getTime() - new Date(sensor.measuredTime).getTime() + minutes * 60 * 1000) / 1000);
+  return ttlInSeconds > 0 ? ttlInSeconds : 0;
+}
+
 // Function to load sensors
 async function loadSensors(url: string) {
   let sensorsCount = 0;
@@ -57,7 +74,8 @@ async function loadSensors(url: string) {
         if (sensors.length !== 0) {
           for (const sensor of sensors) {
             // Set entity ID as "stationID:sensorID" while saving
-            await sensorRepository.save(`${station.id}:${sensor.id}`, {
+            const id = `${station.id}:${sensor.id}`;
+            await sensorRepository.save(id, {
               id: sensor.id,
               stationId: sensor.stationId,
               name: sensor.name,
@@ -67,9 +85,11 @@ async function loadSensors(url: string) {
               unit: sensor.unit,
               value: sensor.value
             });
+            // Set time to live for the sensor key
+            await sensorRepository.expire(id, calculateTimeToLive(sensor));
             sensorsCount++;
           }
-          // Generate a set of unique station IDs
+          // Add station IDs to the set of active stations containing sensors values
           stationIds.add(station.id);
         }
         else {
@@ -123,7 +143,6 @@ async function loadStations(url: string) {
           sensors: station.properties.sensors
         });
         stationsCount++;
-        //await delayBy(1500); // =1.5s intervals
       }
     } else {
       console.log('Redis already contatins the latest station data.');
