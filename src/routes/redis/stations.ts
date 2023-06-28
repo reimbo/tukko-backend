@@ -214,7 +214,7 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *         schema:
  *           type: number
  *           format: float
- *         example: 30
+ *         example: 50
  *         description: Query stations based on radius range in kilometers. Longitude and latitude must be defined in addition to the radius.
  *         required: false
  *       - in: query
@@ -277,7 +277,7 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *         schema:
  *           type: number
  *           format: float
- *         example: 100
+ *         example: 5000
  *         description: Query stations based on the value of a sensor. Returns stations with sensor values less or equal to the defined value. Can be used in combination with ValueGte to define a range.
  *         required: false
  *     responses:

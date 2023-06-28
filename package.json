@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "npx tsc -p .",
-    "dev": "nodemon ./src/index.ts",
     "serve": "node dist/index.js",
+    "dev": "npx tsc -p . && docker compose -f dev-compose.yml up -d --build && node ./dist/index.js",
     "prod": "npx tsc -p . && docker compose -f docker-compose.yml up -d --build"
   },
   "repository": {
