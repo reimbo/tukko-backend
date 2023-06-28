@@ -7,7 +7,8 @@
     "build": "npx tsc -p .",
     "dev": "nodemon ./src/index.ts",
     "serve": "node dist/index.js",
-    "test": "jest"
+    "test": "jest",
+    "prod": "npx tsc -p . && docker compose -f docker-compose.yml up -d --build"
   },
   "repository": {
     "type": "git",
@@ -18,9 +19,13 @@
   "dependencies": {
     "axios": "^1.4.0",
     "express": "^4.18.2",
+    "http-status-codes": "^2.2.0",
     "mongodb": "^5.6.0",
     "node-localstorage": "^2.2.1",
-    "redis": "^4.6.7"
+    "redis": "^4.6.7",
+    "redis-om": "^0.4.0-beta.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^4.6.3"
   },
   "devDependencies": {
     "@types/express": "^4.17.17",
@@ -30,8 +35,8 @@
     "@types/react": "^18.2.12",
     "dotenv": "^16.1.4",
     "jest": "^29.5.0",
-    "nodemon": "^2.0.22",
     "ts-jest": "^29.1.0",
+    "nodemon": "^1.14.9",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.1.3"

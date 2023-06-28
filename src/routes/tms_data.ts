@@ -1,6 +1,6 @@
 import express, { Express, Request, Response } from "express";
 import { fetch } from "../scripts/fetch";  
-import {FeedbackForm} from "../../src/scripts/feedbackForm";
+import { FeedbackForm } from "../scripts/feedbackForm";
 
 export const tmsRouter: Express = express();
 tmsRouter.use(express.json());
