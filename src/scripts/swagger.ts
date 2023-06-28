@@ -19,8 +19,8 @@ const options = {
         },
         servers: [
             {
-                url: `http://localhost:3001`,
-                description: 'Development server',
+                url: (process.env.TRAVIS_DOMAIN || 'http://localhost:3001') as string,
+                description: 'Travis API',
             },
         ],
     },

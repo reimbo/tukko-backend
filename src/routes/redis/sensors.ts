@@ -51,7 +51,7 @@ export const sensors = express.Router()
  *           format: float
  *         description: Query sensors based on the value of a sensor. Returns sensors with sensor values less than or equal to the defined value. Can be used in combination with ValueGte to define a range.
  *         required: false
- *         example: 100
+ *         example: 5000
  *     responses:
  *       200:
  *         description: A list of sensors.
