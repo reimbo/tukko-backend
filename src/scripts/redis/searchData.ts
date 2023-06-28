@@ -146,7 +146,7 @@ function buildSensorQuery(paramsDict: Record<string, string>) {
 
 // Helper function to query stations based on sensor params
 async function queryStationsBySensors(sensors: any[]) {
-    const stations: any[] = [];
+    let stations: any[] = [];
     // Get unique station IDs from the sensors
     const stationIds = getUniqueStationIds(sensors);
     // Query stations based on the list of unique station IDs
@@ -163,7 +163,7 @@ async function updateStationsWithSensors(stations: any[], includeSensors: boolea
     if (includeSensors) {
         for (const station of stations) {
             const sensorIds = station.sensors;
-            const sensors: any[] = [];
+            let sensors: any[] = [];
             for (const sensorId of sensorIds) {
                 const sensor = await sensorRepository.fetch(`${station.id}:${sensorId}`);
                 sensors.push(sensor);
@@ -188,12 +188,9 @@ function buildParamsDictionary(params: ParsedQs, targetParams: string[]) {
 // Helper function to create a list of unique station IDs based on provided sensors
 function getUniqueStationIds(sensors: any[]) {
     // Get unique station IDs from the list of sensors
-    const stationIds: string[] = [];
+    let stationIds = new Set<string>();
     for (const sensor of sensors) {
-        const stationId = sensor.stationId as string;
-        if (!stationIds.includes(stationId)) {
-            stationIds.push(stationId);
-        }
+        stationIds.add(sensor.stationId);
     }
     return stationIds;
 }

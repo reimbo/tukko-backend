@@ -20,7 +20,7 @@ let sensorRepository: Repository;
     stationRepository = new Repository(stationSchema, client);
     sensorRepository = new Repository(sensorSchema, client);
     // Create indices in the repositories for efficient searching
-    await sensorRepository.createIndex();
+    await stationRepository.createIndex();
     await sensorRepository.createIndex();
 })()
 
