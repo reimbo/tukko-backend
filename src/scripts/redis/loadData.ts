@@ -2,6 +2,7 @@ require('dotenv').config();
 const axios = require('axios').default;
 import { AxiosResponse } from 'axios';
 import { stationRepository, sensorRepository } from './client';
+import { scheduleScript } from '../schedule';
 
 // Define the URLs for stations and sensors
 const urlStations = (process.env.TMS_STATION_LIST_URL || 'https://tie.digitraffic.fi/api/tms/v1/stations') as string;
@@ -159,6 +160,7 @@ export async function loadData() {
   // Load stations and sensors data
   await loadSensors(urlSensors);
   await loadStations(urlStations);
+  scheduleScript(loadSensorData, 0, 60000 /* rate=1min */);
 }
 
 // Function to load sensor data
