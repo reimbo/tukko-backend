@@ -176,7 +176,7 @@ export async function loadRoadData() {
     // Load stations and sensors data
     await loadSensors(urlSensors);
     await loadStations(urlStations);
-    // Load stations and sensors data
+    // Load road data
     await updateStationsWithRoadData(urlStations);
   } catch (error: any) {
     throw new Error('Error loading road data: ' + error.message);
