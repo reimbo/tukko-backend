@@ -65,5 +65,5 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Schedule data loading processes for Redis database with time rate defined in milliseconds
 scheduleScript(loadData, 0, 60000 * 60 /* rate=60min */);
-scheduleScript(loadSensorData, 60000 * 5 /* startDelay=5min */, 60000 /* rate=1min */);
+scheduleScript(loadSensorData, 60000 * 3 /* startDelay=3min */, 60000 /* rate=1min */);
 // -----------------------------------------------------------------------------------------------
