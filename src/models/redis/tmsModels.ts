@@ -1,5 +1,5 @@
 import { Repository, Schema } from 'redis-om';
-import client from './client';
+import client from '../../scripts/redis/client';
 
 // Redis schema for storing stations
 const stationSchema = new Schema('station', {

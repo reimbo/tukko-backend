@@ -1,5 +1,5 @@
 import { ParsedQs } from 'qs';
-import { stationRepository, sensorRepository } from './tmsModels';
+import { stationRepository, sensorRepository } from '../../models/redis/tmsModels';
 import client from './client';
 
 // Set allowed params for each object type

@@ -1,7 +1,6 @@
-require('dotenv').config();
 const axios = require('axios').default;
 import { AxiosResponse } from 'axios';
-import { stationRepository, sensorRepository } from './tmsModels';
+import { stationRepository, sensorRepository } from '../../models/redis/tmsModels';
 // import { delayBy } from '../schedule';
 import client from './client';
 
@@ -111,23 +110,7 @@ async function loadStations(url: string) {
   }
 }
 
-// Function to load all data
-export async function loadData() {
-  try {
-    // Connect to Redis
-    await client.connect();
-    // Load stations and sensors data
-    await loadSensors(urlSensors);
-    await loadStations(urlStations);
-  } catch (error: any) {
-    throw new Error('Error loading data: ' + error.message);
-  } finally {
-    // Disconnect from Redis
-    await client.quit();
-  }
-}
-
-// Function to load road data
+// Function to update existing station entities with load road data
 async function updateStationsWithRoadData(url: string) {
   let stations = 0;
   try {
@@ -176,6 +159,23 @@ async function updateStationsWithRoadData(url: string) {
   }
 }
 
+// Function to load all data excluding road data
+export async function loadData() {
+  try {
+    // Connect to Redis
+    await client.connect();
+    // Load stations and sensors data
+    await loadSensors(urlSensors);
+    await loadStations(urlStations);
+  } catch (error: any) {
+    throw new Error('Error loading data: ' + error.message);
+  } finally {
+    // Disconnect from Redis
+    await client.quit();
+  }
+}
+
+// Function to load all data including road data
 export async function loadRoadData() {
   try {
     // Connect to Redis
