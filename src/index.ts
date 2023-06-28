@@ -64,6 +64,6 @@ app.use('/sensors', sensors);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Schedule data loading processes for Redis database with time intervals defined in milliseconds
-scheduleScript(loadRoadData, 0, 60000 * 60 * 24 /* =24h */);
-scheduleScript(loadData, 60000 * 10 /* =10min */, 60000 /* =1min */);
+scheduleScript(loadRoadData, 0, 60000 * 60 * 12 /* =12h */);
+scheduleScript(loadData, 60000 * 5 /* =5min */, 60000 /* =1min */);
 // -----------------------------------------------------------------------------------------------
