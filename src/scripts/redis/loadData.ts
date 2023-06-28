@@ -1,8 +1,7 @@
 const axios = require('axios').default;
 import { AxiosResponse } from 'axios';
-import { stationRepository, sensorRepository } from '../../models/redis/tmsModels';
+import { stationRepository, sensorRepository } from './client';
 // import { delayBy } from '../schedule';
-import client from './client';
 
 // Define the URLs for stations and sensors
 const urlStations = (process.env.TMS_STATION_LIST_URL || 'https://tie.digitraffic.fi/api/tms/v1/stations') as string;
@@ -64,7 +63,7 @@ async function loadSensors(url: string) {
     throw new Error('Error loading sensors: ' + error.message);
   }
   finally {
-    console.log(`${sensorsCount} sensors stored.`);
+    console.log(`Stored ${sensorsCount} sensors.`);
   }
 }
 
@@ -141,7 +140,8 @@ async function updateStationsWithRoadData(url: string) {
             direction1Municipality: station.direction1Municipality,
             direction1MunicipalityCode: station.direction1MunicipalityCode,
             direction2Municipality: station.direction2Municipality,
-            direction2MunicipalityCode: station.direction2MunicipalityCode
+            direction2MunicipalityCode: station.direction2MunicipalityCode,
+            sensors: station.sensors
           });
           stations++;
           //await delayBy(1500); // =1.5s intervals
@@ -155,40 +155,30 @@ async function updateStationsWithRoadData(url: string) {
     throw new Error('Error updating stations with road data: ' + error.message);
   }
   finally {
-    console.log(`${stations} stations updated.`);
+    console.log(`Updated ${stations} stations.`);
   }
 }
 
 // Function to load all data excluding road data
 export async function loadData() {
   try {
-    // Connect to Redis
-    await client.connect();
     // Load stations and sensors data
     await loadSensors(urlSensors);
     await loadStations(urlStations);
   } catch (error: any) {
     throw new Error('Error loading data: ' + error.message);
-  } finally {
-    // Disconnect from Redis
-    await client.quit();
   }
 }
 
 // Function to load all data including road data
 export async function loadRoadData() {
   try {
-    // Connect to Redis
-    await client.connect();
     // Load stations and sensors data
     await loadSensors(urlSensors);
     await loadStations(urlStations);
-    // Load stations and sensors data
+    // Load road data
     await updateStationsWithRoadData(urlStations);
   } catch (error: any) {
     throw new Error('Error loading road data: ' + error.message);
-  } finally {
-    // Disconnect from Redis
-    await client.quit();
   }
 }

@@ -21,7 +21,7 @@ export const stations = express.Router()
  *         description: Station ID.
  *         required: true
  *       - in: query
- *         name: includeSensorValues
+ *         name: includeSensors
  *         schema:
  *           type: boolean
  *           enum: [true, false]
@@ -109,7 +109,7 @@ export const stations = express.Router()
  *                     type: integer
  *                     description: Municipality code.
  *                     example: 91
- *                   sensorValues:
+ *                   sensors:
  *                     type: array
  *                     items:
  *                       type: object
@@ -156,9 +156,10 @@ export const stations = express.Router()
  *         description: Internal server error.
  */
 stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+    // Get includeSensors bool
+    const includeSensors = req.query.includeSensors as string;
     // Get params
     const id = req.params.id as string;
-    const includeSensors = req.query.includeSensors as string;
     // Search data based on the provided params
     try {
         const data = await redis.searchStationById(id, includeSensors);
@@ -186,7 +187,7 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *     description: Retrieve a list of stations including sensor values for each station. If no parameters provided, all stations are retrieved.
  *     parameters:
  *       - in: query
- *         name: includeSensorValues
+ *         name: includeSensors
  *         schema:
  *           type: boolean
  *           enum: [true, false]
@@ -361,7 +362,7 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *                     type: integer
  *                     description: Municipality code.
  *                     example: 91
- *                   sensorValues:
+ *                   sensors:
  *                     type: array
  *                     items:
  *                       type: object
@@ -408,11 +409,13 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *         description: Internal server error.
  */
 stations.get('/', async (req: Request, res: Response, next: NextFunction) => {
+    // Get includeSensors bool
+    const includeSensors = req.query.includeSensors as string;
     // Get query params dictionary
     const params = req.query;
     // Search data based on the provided params
     try {
-        const data = await redis.searchStations(params);
+        const data = await redis.searchStations(params, includeSensors);
         // If no data is found, respond with the 404 status code
         if (data == null) {
             const error: any = new Error(`No stations found.`);
