@@ -1,50 +1,43 @@
 import { ParsedQs } from 'qs';
-import { stationRepository, sensorRepository } from '../../models/redis/tmsModels';
-import client from './client';
+import { stationRepository, sensorRepository } from './client';
 
 // Set allowed params for each object type
 const stationParams = ['roadNumber', 'roadSection', 'municipalityCode', 'provinceCode', 'longitude', 'latitude', 'radius'];
 const sensorParams = ['id', 'measuredTimeOnAfter', 'measuredTimeOnBefore', 'valueLte', 'valueGte'];
 
 // Search for a station by ID
-async function searchStationById(id: string, includeSensorValues: string) {
+async function searchStationById(id: string, includeSensors: string) {
     try {
-        // Connect to Redis
-        await client.connect();
         // Query a station based on ID
-        const station = await stationRepository.fetch(id);
+        const stationEntity = await stationRepository.fetch(id);
         // Return null if object is empty
-        if (Object.keys(station).length === 0) return null;
-        // Query sensors based on the station's ID
-        const sensors = await buildSensorQuery({ 'stationId': id }).return.all();
+        if (Object.keys(stationEntity).length === 0) return null;
+        const station: any[] = [stationEntity];
         // Convert includeSensor into bool
-        const includeSensorValuesBool = includeSensorValues === 'false' ? false : true;
+        const includeSensorsBool = includeSensors === 'false' ? false : true;
         // Update station with sensor values
-        await updateStationWithSensorValues(station, sensors, includeSensorValuesBool);
+        await updateStationsWithSensors(station, includeSensorsBool);
         // Return data
-        return [station];
+        return station;
     } catch (error: any) {
         throw new Error('Error searching station by ID: ' + error.message);
-    } finally {
-        // Disconnect from Redis
-        await client.quit();
     }
 };
 
 // Search for stations based on provided parameters
-async function searchStations(params: ParsedQs) {
+async function searchStations(params: ParsedQs, includeSensors: string) {
     try {
         let stations: any[] = [];
-        // Connect to Redis
-        await client.connect();
         // Convert includeSensor into bool
-        const includeSensorValues = params.includeSensorValues as string === 'false' ? false : true;
+        const includeSensorsBool = includeSensors === 'false' ? false : true;
         // Build dictionary for station params
         const stationParamsDict = buildParamsDictionary(params, stationParams);
         // Query stations
         if (Object.keys(stationParamsDict).length === 0) {
-            // If no params provided, get all stations with sensors
-            stations = await getAllStationsWithSensors(includeSensorValues);
+            // If no params provided, get all stations
+            stations = await stationRepository.search().return.all();
+            // Update stations with sensor values
+            await updateStationsWithSensors(stations, includeSensorsBool);
         } else {
             // Build dictionaries for sensor params
             const sensorParamsDict = buildParamsDictionary(params, sensorParams);
@@ -63,9 +56,7 @@ async function searchStations(params: ParsedQs) {
                     }
                 }
                 // Update stations with sensor values
-                for (const station of stations) {
-                    await updateStationWithSensorValues(station, sensors, includeSensorValues);
-                }
+                await updateStationsWithSensors(stations, includeSensorsBool);
             } else if (Object.keys(sensorParamsDict).length !== 0) {
                 // If no station params are provided, query stations based on sensor params only
                 // Query sensors based on sensor params
@@ -73,18 +64,13 @@ async function searchStations(params: ParsedQs) {
                 // Query stations based on sensors
                 stations = await queryStationsBySensors(sensors);
                 // Update stations with sensor values
-                for (const station of stations) {
-                    await updateStationWithSensorValues(station, sensors, includeSensorValues);
-                }
+                await updateStationsWithSensors(stations, includeSensorsBool);
             }
         }
         // Return null if list is empty
         return stations.length === 0 ? null : stations;
     } catch (error: any) {
         throw new Error('Error searching stations: ' + error.message);
-    } finally {
-        // Disconnect from Redis
-        await client.quit();
     }
 }
 
@@ -92,8 +78,6 @@ async function searchStations(params: ParsedQs) {
 async function searchSensors(params: ParsedQs) {
     try {
         let sensors: any[] = [];
-        // Connect to Redis
-        await client.connect();
         // Query sensors
         if (Object.keys(params).length === 0) {
             // If no params provided, get all sensors
@@ -108,9 +92,6 @@ async function searchSensors(params: ParsedQs) {
         return sensors.length === 0 ? null : sensors;
     } catch (error: any) {
         throw new Error('Error searching sensors: ' + error.message);
-    } finally {
-        // Disconnect from Redis
-        await client.quit();
     }
 }
 
@@ -177,38 +158,19 @@ async function queryStationsBySensors(sensors: any[]) {
 }
 
 // Helper function to update stations with sensor values
-async function updateStationWithSensorValues(station: any, sensors: any[], includeSensorValues: boolean) {
-    if (sensors.length !== 0) {
-        let sensorValues: any[] = [];
-        for (const sensor of sensors) {
-            if (sensor.stationId === station.id) {
-                if (includeSensorValues) {
-                    // Push a sensor object
-                    sensorValues.push(sensor);
-                } else {
-                    // Push a sensor ID
-                    sensorValues.push(sensor.id);
-                }
+async function updateStationsWithSensors(stations: any[], includeSensors: boolean) {
+    // Update stations with sensors if includeSensors is true
+    if (includeSensors) {
+        for (const station of stations) {
+            const sensorIds = station.sensors;
+            const sensors: any[] = [];
+            for (const sensorId of sensorIds) {
+                const sensor = await sensorRepository.fetch(`${station.id}:${sensorId}`);
+                sensors.push(sensor);
             }
+            station.sensors = sensors;
         }
-        // Update station with sensors
-        station.sensorValues = sensorValues;
     }
-}
-
-// Helper function to get all stations with sensors
-async function getAllStationsWithSensors(includeSensorValues: boolean) {
-    // Get all stations
-    const stations: any[] = await stationRepository.search().return.all();
-    for (const station of stations) {
-        // Get sensors for a specific station
-        const sensors = await sensorRepository.search()
-            .where('stationId').equals(station.id)
-            .return.all();
-        // Update stations with sensor values
-        updateStationWithSensorValues(station, sensors, includeSensorValues);
-    }
-    return stations;
 }
 
 // Helper function to build a dictionary of allowed parameters
