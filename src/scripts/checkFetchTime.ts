@@ -15,7 +15,7 @@ const currentDay = currentDate.getDate();
 
 const currentHour = currentDate.getHours();
 const currentMinute = currentDate.getMinutes();
-console.log(`******\n Current date is: ${currentDay}/0${currentMonth}/${currentYear} at ${currentHour}:${currentMinute}\n**********`)
+console.log(`******\n[MongoDB] - Current date is: ${currentDay}/0${currentMonth}/${currentYear} at ${currentHour}:${currentMinute}\n**********`)
 
 // Save the lastFetchTime to localStorage
 export function setLastFetchTime(newTime: Date) {
@@ -23,7 +23,7 @@ export function setLastFetchTime(newTime: Date) {
 }
 
 if (!lastFetchTime) {
-    console.log("\nNo lastFetchTime found in localStorage. \nPlease Fetch more data...\n");
+    console.log("\n[MongoDB] - No lastFetchTime found in localStorage. \nPlease Fetch more data...\n");
     const initialFetch = new Date(currentDate.getTime() - 24 * 60 * 60 * 1000);
     setLastFetchTime(initialFetch);
 }
@@ -57,11 +57,11 @@ export function checkNewDayHasPassedSinceLastFetch(currentHour:number, currentMi
             (lastFetchYear <= currentYear 
             && lastFetchMonth <= currentMonth 
             && lastFetchDay < currentDay)){
-                console.log("New day has passed since last fetch. \nStart fetching and inserting new record into Mongodb...\n")
+                console.log("[MongoDB] - New day has passed since last fetch. \nStart fetching and inserting new record into Mongodb...\n")
                 return true;
             }
     else{
-        console.log("\nNew day has NOT passed since last fetch. \nNew Insertion to MongoDB is disabled, \nUpdating is allowed within a 5 mins limit...\n")
+        console.log("\n[MongoDB] - New day has NOT passed since last fetch. \nNew Insertion to MongoDB is disabled, \nUpdating is allowed within a 5 mins limit...\n")
         return false;
     }
 }
@@ -70,7 +70,7 @@ export function checkNewDayHasPassedSinceLastFetch(currentHour:number, currentMi
 export function checkFetchTime() {
     // If there is no lastFetchTime, set it to previous day and return true
     if (!lastFetchTime) {
-        console.log("No lastFetchTime found in localStorage.\nStart fetching...\n");
+        console.log("[MongoDB] - No lastFetchTime found in localStorage.\nStart fetching...\n");
         time_To_Insert_New_Data = true;
         return true;
     } else {
@@ -84,11 +84,11 @@ export function checkFetchTime() {
             timeDiff(lastFetchTime) > fiveMinutesInMs 
         ) {
             // 5 minutes or more have passed since the last fetch
-            console.log('5 minutes or more have passed since the last fetch.\nStart fetching...\n');
+            console.log('[MongoDB] - 5 minutes or more have passed since the last fetch.\nStart fetching...\n');
             return true;
         } else {
             // Less than 5 minutes have passed since the last fetch
-            console.log('Less than 5 minutes have passed since the last fetch. \nUsing saved / cached data.');
+            console.log('[MongoDB] - Less than 5 minutes have passed since the last fetch. \nUsing saved / cached data.');
             return false;
         }
     }

@@ -1,8 +1,9 @@
-import express, { Express, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import { fetch } from "../scripts/fetch";  
 import { FeedbackForm } from "../scripts/feedbackForm";
 
-export const tmsRouter: Express = express();
+export const tmsRouter = express.Router();
+
 tmsRouter.use(express.json());
 
 tmsRouter.get("/stations", async (_req: Request, res: Response): Promise<void> => {

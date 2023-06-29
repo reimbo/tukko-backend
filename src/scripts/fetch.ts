@@ -79,4 +79,3 @@ export const fetch = async (url: String) => {
   }
 }
 
-    // await runAggregation("OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1")
