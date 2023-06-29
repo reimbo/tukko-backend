@@ -2,7 +2,6 @@ require('dotenv').config();
 const axios = require('axios').default;
 import { AxiosResponse } from 'axios';
 import { stationRepository, sensorRepository } from './client';
-import { EntityId } from 'redis-om';
 
 // Define the URLs for stations and sensors
 const urlStations = (process.env.TMS_STATION_LIST_URL || 'https://tie.digitraffic.fi/api/tms/v1/stations') as string;
@@ -114,11 +113,6 @@ async function loadStations(url: string) {
     console.log('Fetching and storing stations...');
     // Check if station data has been updated
     if (await isDataUpdated(url, 'station') && stationIds.size !== 0) {
-      // Remove all station data before storing new data to the repository
-      const storedStations = await stationRepository.search().return.all();
-      for (const station of storedStations) {
-        await stationRepository.remove(station[EntityId] as string);
-      }
       // Fetch data for each station ID and save it to the repository
       for (const stationId of stationIds) {
         const response: AxiosResponse = await axios.get(`${url}/${stationId}`, axiosConf);
@@ -148,6 +142,12 @@ async function loadStations(url: string) {
           sensors: station.properties.sensors
         });
         stationsCount++;
+      }
+      // Remove from the repository all stations that are not in the stationIds set
+      const storedStations = await stationRepository.search().return.all();
+      for (const station of storedStations) {
+        const stationId = station.id as string;
+        if (!stationIds.has(stationId)) await stationRepository.remove(stationId);
       }
     } else {
       console.log('Redis already contatins the latest station data.');
