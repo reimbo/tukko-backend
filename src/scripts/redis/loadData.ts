@@ -2,6 +2,7 @@ require('dotenv').config();
 const axios = require('axios').default;
 import { AxiosResponse } from 'axios';
 import { stationRepository, sensorRepository } from './client';
+import { EntityId } from 'redis-om';
 
 // Define the URLs for stations and sensors
 const urlStations = (process.env.TMS_STATION_LIST_URL || 'https://tie.digitraffic.fi/api/tms/v1/stations') as string;
@@ -26,7 +27,7 @@ const fastExpireSensorIDs = new Set<number>([5016, 5019, 5022, 5025, 5058, 5061,
 // IDs of sensors with 60 min measurement rate
 const slowExpireSensorIDs = new Set<number>([5054, 5055, 5056, 5057, 5067, 5071]);
 
-// Helper function to check if data has been updated, as well as to update local timestamps
+// Helper function to check if data has been updated and to update local timestamps
 async function isDataUpdated(url: string, dataType: string) {
   // Fetch dataUpdatedTime
   const response: AxiosResponse = await axios.get(
@@ -73,7 +74,7 @@ async function loadSensors(url: string) {
         const sensors = station.sensorValues
         if (sensors.length !== 0) {
           for (const sensor of sensors) {
-            // Set entity ID as "stationID:sensorID" while saving
+            // Set entity ID as "stationID:sensorID"
             const id = `${station.id}:${sensor.id}`;
             await sensorRepository.save(id, {
               id: sensor.id,
@@ -91,8 +92,7 @@ async function loadSensors(url: string) {
           }
           // Add station IDs to the set of active stations containing sensors values
           stationIds.add(station.id);
-        }
-        else {
+        } else {
           // If the station does not include any sensor values, delete its ID from the set
           stationIds.delete(station.id);
         }
@@ -114,6 +114,11 @@ async function loadStations(url: string) {
     console.log('Fetching and storing stations...');
     // Check if station data has been updated
     if (await isDataUpdated(url, 'station') && stationIds.size !== 0) {
+      // Remove all station data before storing new data to the repository
+      const storedStations = await stationRepository.search().return.all();
+      for (const station of storedStations) {
+        await stationRepository.remove(station[EntityId] as string);
+      }
       // Fetch data for each station ID and save it to the repository
       for (const stationId of stationIds) {
         const response: AxiosResponse = await axios.get(`${url}/${stationId}`, axiosConf);
