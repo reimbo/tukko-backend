@@ -12,7 +12,7 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
       
       if (time_To_Insert_New_Data || isCollectionEmpty) {
         const result = await collections.tms?.insertOne(data);
-        console.log("******Inserted into Mongo\n******");
+        console.log(`******Inserted ${data.stations.length} into Mongo\n******`);
         completedInsert();
   
         if (!result) {
@@ -24,12 +24,12 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
             
             if (latestObj) {
                 try {
-                    console.log("******Latest Object\n******", latestObj[0].stations[0])
+                    // console.log("******Latest Object\n******", latestObj[0].stations[0])
                     const result = await collections.tms?.updateOne(
                     { _id: latestObj[0]._id }, // Specify the document to update using its _id
                     { $set: data  } 
                     );
-                    console.log(`******Updated Mongo ${data.dataUpdatedTime}\n******`);
+                    console.log(`******Updated ${data.stations.length} stations into Mongo ${data.dataUpdatedTime}\n******`);
                     
                     if (!result) {
                         throw new Error('Failed to update data into MongoDB');
@@ -65,7 +65,6 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
   };
   // Handler function to add data to MongoDB
   export function addToMongoDB(data: StationData) {
-      // const currentUpdateTime = new Date(data.dataUpdatedTime).getTime();
       storeFetch(data);
     
   }
@@ -145,8 +144,9 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
       if(!result) {
         throw new Error('Failed to aggregate data from MongoDB');
       }
-      const filteredResult = result.map((station: any) => `Station: ${station.stations.sensorValues.stationId} - Record: ${station.stations.sensorValues.value} ${station.stations.sensorValues.unit} - measuredTime: ${station.stations.sensorValues.measuredTime}`);
-      console.log(filteredResult);
+      // const filteredResult = result.map((station: any) => `Station: ${station.stations.sensorValues.stationId} - Record: ${station.stations.sensorValues.value} ${station.stations.sensorValues.unit} - measuredTime: ${station.stations.sensorValues.measuredTime}`);
+      // console.log(filteredResult);
+      return result;
     } catch (error: unknown) {
       console.error(error)
     }
