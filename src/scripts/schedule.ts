@@ -8,8 +8,9 @@ export async function scheduleScript(script: () => Promise<void>, startDelay: nu
     await delayBy(startDelay);
     while (true) {
         // Run the script
-        console.log(`Running ${script.name} script...`);
+        console.log(`Running ${script.name} script with a rate of ${rate / 1000} seconds...`);
         await script();
+        console.log(`Finished running ${script.name} script.`);
         // Wait for a specific delay using a Promise and setTimeout
         await delayBy(rate);
     }
