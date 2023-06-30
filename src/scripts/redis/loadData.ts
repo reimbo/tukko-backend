@@ -22,9 +22,11 @@ let stationsUpdateTimestamp = new Date(0);
 // IDs of active stations containing sensors values
 let stationIds = new Set<string>();
 // IDs of sensors with 5 min measurement rate
-const fastExpireSensorIDs = new Set<number>([5016, 5019, 5022, 5025, 5058, 5061, 5064, 5068, 5116, 5119, 5122, 5125, 5152, 5158, 5161, 5164, 5168]);
+const fastExpireSensorIDs = new Set<number>([5058, 5061, 5068, 5116, 5119, 5122, 5125, 5152, 5158, 5161, 5164, 5168]);
 // IDs of sensors with 60 min measurement rate
-const slowExpireSensorIDs = new Set<number>([5054, 5055, 5056, 5057, 5067, 5071]);
+const slowExpireSensorIDs = new Set<number>([5054, 5055, 5056, 5057]);
+// IDs of sensors useless for real time data
+const uselessSensorIDs = new Set<number>([5016, 5019, 5022, 5025, 5064, 5067, 5068, 5071]);
 
 // Helper function to check if data has been updated and to update local timestamps
 async function isDataUpdated(url: string, dataType: string) {
@@ -63,7 +65,7 @@ function calculateTimeToLive(sensor: any) {
 async function loadSensors(url: string) {
   let sensorsCount = 0;
   try {
-    console.log('Fetching and storing sensors...');
+    console.log('REDIS: Fetching and storing sensors...');
     // Check if data has been updated
     if (await isDataUpdated(url, 'sensor')) {
       // Fetch data
@@ -73,6 +75,8 @@ async function loadSensors(url: string) {
         const sensors = station.sensorValues
         if (sensors.length !== 0) {
           for (const sensor of sensors) {
+            // Skip sensors useless for real time data
+            if (uselessSensorIDs.has(sensor.id)) { continue }
             // Set entity ID as "stationID:sensorID"
             const id = `${station.id}:${sensor.id}`;
             await sensorRepository.save(id, {
@@ -97,12 +101,12 @@ async function loadSensors(url: string) {
         }
       }
     } else {
-      console.log('Redis already contatins the latest sensor data.');
+      console.log('REDIS: Database already contatins the latest sensor data.');
     }
   } catch (error: any) {
     throw new Error('Error loading sensors: ' + error.message);
   } finally {
-    console.log(`Stored ${sensorsCount} sensors.`);
+    console.log(`REDIS: Stored ${sensorsCount} sensors.`);
   }
 }
 
@@ -110,13 +114,15 @@ async function loadSensors(url: string) {
 async function loadStations(url: string) {
   let stationsCount = 0;
   try {
-    console.log('Fetching and storing stations...');
+    console.log('REDIS: Fetching and storing stations...');
     // Check if station data has been updated
     if (await isDataUpdated(url, 'station') && stationIds.size !== 0) {
       // Fetch data for each station ID and save it to the repository
       for (const stationId of stationIds) {
         const response: AxiosResponse = await axios.get(`${url}/${stationId}`, axiosConf);
         const station = response.data;
+        // Filter out sensors useless for real time data
+        const sensors = station.properties.sensors.filter((sensor: any) => !uselessSensorIDs.has(sensor.id));
         // Set entity ID as "stationID"
         await stationRepository.save(`${station.id}`, {
           id: station.id,
@@ -139,7 +145,7 @@ async function loadStations(url: string) {
           direction1MunicipalityCode: station.properties.direction1MunicipalityCode,
           direction2Municipality: station.properties.direction2Municipality,
           direction2MunicipalityCode: station.properties.direction2MunicipalityCode,
-          sensors: station.properties.sensors
+          sensors: sensors
         });
         stationsCount++;
       }
@@ -150,12 +156,12 @@ async function loadStations(url: string) {
         if (!stationIds.has(stationId)) await stationRepository.remove(stationId);
       }
     } else {
-      console.log('Redis already contatins the latest station data.');
+      console.log('REDIS: Database already contatins the latest station data.');
     }
   } catch (error: any) {
     throw new Error('Error loading stations: ' + error.message);
   } finally {
-    console.log(`Stored ${stationsCount} stations.`);
+    console.log(`REDIS: Stored ${stationsCount} stations.`);
   }
 }
 
