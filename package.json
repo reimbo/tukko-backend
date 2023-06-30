@@ -4,7 +4,7 @@
   "description": "Backend for the Traffic Visualizer project. Acts as a inbetween to traffic data APIs and the enduser, to reduce load on the traffic APIs",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc -p ./tsconfig.json",
+    "build": "npx tsc -p .",
     "compose:dev": "docker-compose -f dev-compose.yml up -d --build",
     "compose:prod": "docker compose -f docker-compose.yml up -d --build",
     "compose:down": "docker compose -f docker-compose.yml down --volumes",
