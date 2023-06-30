@@ -106,6 +106,8 @@ export const sensors = express.Router()
 sensors.get('/', async (req: Request, res: Response, next: NextFunction) => {
     // Get query params dictionary
     const params = req.query;
+    // TODO Check params before passing to search
+    // ------------------------------------------
     // Search data based on the provided params
     try {
         const data = await redis.searchSensors(params);

@@ -157,9 +157,9 @@ export const stations = express.Router()
  */
 stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     // Get includeSensors bool
-    const includeSensors = req.query.includeSensors as string;
+    const includeSensors = req.query.includeSensors === 'false' ? false : true;
     // Get params
-    const id = req.params.id as string;
+    const id = req.params.id;
     // Search data based on the provided params
     try {
         const data = await redis.searchStationById(id, includeSensors);
@@ -410,9 +410,11 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  */
 stations.get('/', async (req: Request, res: Response, next: NextFunction) => {
     // Get includeSensors bool
-    const includeSensors = req.query.includeSensors as string;
+    const includeSensors = req.query.includeSensors === 'false' ? false : true;
     // Get query params dictionary
     const params = req.query;
+    // TODO Check params before passing to search
+    // ------------------------------------------
     // Search data based on the provided params
     try {
         const data = await redis.searchStations(params, includeSensors);
