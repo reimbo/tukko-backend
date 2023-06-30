@@ -115,6 +115,7 @@ sensors.get('/', async (req: Request, res: Response, next: NextFunction) => {
         // If no data is found, respond with the 404 status code
         if (data === null) {
             const error: any = new Error(`No sensors found.`);
+            error.error = "Not Found";
             error.statusCode = StatusCodes.NOT_FOUND;
             throw error;
         }
@@ -136,8 +137,9 @@ sensors.use((err: any, req: Request, res: Response, next: NextFunction) => {
     // Return the error message with the appropriate status code
     res.setHeader('Content-Type', 'application/json');
     const errorResponse = {
-        error: err.message,
         statusCode: statusCode,
+        error: statusCode === 500 ? 'Internal Server Error' : err.error,
+        message: err.message
     };
     res.status(statusCode).json(errorResponse);
 });
