@@ -2,21 +2,19 @@ import { ParsedQs } from 'qs';
 import { stationRepository, sensorRepository } from './client';
 
 // Set allowed params for each object type
-const stationParams = ['roadNumber', 'roadSection', 'municipalityCode', 'provinceCode', 'longitude', 'latitude', 'radius'];
-const sensorParams = ['id', 'measuredTimeOnAfter', 'measuredTimeOnBefore', 'valueLte', 'valueGte'];
+const stationParams = new Set<string>(['roadNumber', 'roadSection', 'municipalityCode', 'provinceCode', 'longitude', 'latitude', 'radius']);
+const sensorParams = new Set<string>(['id', 'measuredTimeOnAfter', 'measuredTimeOnBefore', 'valueLte', 'valueGte']);
 
 // Search for a station by ID
-async function searchStationById(id: string, includeSensors: string) {
+async function searchStationById(id: string, includeSensors: boolean) {
     try {
         // Query a station based on ID
         const stationEntity = await stationRepository.fetch(id);
         // Return null if object is empty
         if (Object.keys(stationEntity).length === 0) return null;
         const station: any[] = [stationEntity];
-        // Convert includeSensors into bool
-        const includeSensorsBool = includeSensors === 'false' ? false : true;
         // Update station with sensor values
-        await updateStationsWithSensors(station, includeSensorsBool);
+        await updateStationsWithSensors(station, includeSensors);
         // Return data
         return station;
     } catch (error: any) {
@@ -25,11 +23,9 @@ async function searchStationById(id: string, includeSensors: string) {
 }
 
 // Search for stations based on provided parameters
-async function searchStations(params: ParsedQs, includeSensors: string) {
+async function searchStations(params: ParsedQs, includeSensors: boolean) {
     try {
         let stations: any[] = [];
-        // Convert includeSensors into bool
-        const includeSensorsBool = includeSensors === 'false' ? false : true;
         // Build dictionary for station params
         const stationParamsDict = buildParamsDictionary(params, stationParams);
         // Query stations
@@ -37,7 +33,7 @@ async function searchStations(params: ParsedQs, includeSensors: string) {
             // If no params provided, get all stations
             stations = await stationRepository.search().return.all();
             // Update stations with sensor values
-            await updateStationsWithSensors(stations, includeSensorsBool);
+            await updateStationsWithSensors(stations, includeSensors);
         } else {
             // Build dictionaries for sensor params
             const sensorParamsDict = buildParamsDictionary(params, sensorParams);
@@ -56,7 +52,7 @@ async function searchStations(params: ParsedQs, includeSensors: string) {
                     }
                 }
                 // Update stations with sensor values
-                await updateStationsWithSensors(stations, includeSensorsBool);
+                await updateStationsWithSensors(stations, includeSensors);
             } else if (Object.keys(sensorParamsDict).length !== 0) {
                 // If no station params are provided, query stations based on sensor params only
                 // Query sensors based on sensor params
@@ -64,7 +60,7 @@ async function searchStations(params: ParsedQs, includeSensors: string) {
                 // Query stations based on sensors
                 stations = await queryStationsBySensors(sensors);
                 // Update stations with sensor values
-                await updateStationsWithSensors(stations, includeSensorsBool);
+                await updateStationsWithSensors(stations, includeSensors);
             }
         }
         // Return null if list is empty
@@ -96,14 +92,14 @@ async function searchSensors(params: ParsedQs) {
 }
 
 // Helper function to build a station query based on params
-function buildStationQuery(paramsDict: Record<string, string>) {
+function buildStationQuery(paramsDict: Record<string, any>) {
     // Build a station query
     let query = stationRepository.search();
-    const longitude = parseFloat(paramsDict['longitude']);
-    const latitude = parseFloat(paramsDict['latitude']);
-    const radius = parseFloat(paramsDict['radius']);
+    const longitude = paramsDict['longitude'];
+    const latitude = paramsDict['latitude'];
+    const radius = paramsDict['radius'];
     // Coordinates params require unique query construction
-    if (!isNaN(longitude) && !isNaN(latitude) && !isNaN(radius)) {
+    if (longitude && latitude && radius) {
         query = query.where('coordinates').inRadius(circle => circle
             .longitude(longitude)
             .latitude(latitude)
@@ -120,18 +116,16 @@ function buildStationQuery(paramsDict: Record<string, string>) {
 }
 
 // Helper function to build a sensor query based on params
-function buildSensorQuery(paramsDict: Record<string, string>) {
+function buildSensorQuery(paramsDict: Record<string, any>) {
     // Build a sensor query
     let query = sensorRepository.search();
     for (const param in paramsDict) {
         const value = paramsDict[param];
         if (param === 'measuredTimeOnAfter' || param === 'measuredTimeOnBefore') {
-            // Convert the value to a UTC timestamp
-            const utcTimestamp = new Date(value);
             if (param === 'measuredTimeOnAfter') {
-                query = query.and('measuredTime').onOrAfter(utcTimestamp);
+                query = query.and('measuredTime').onOrAfter(value);
             } else {
-                query = query.and('measuredTime').onOrBefore(utcTimestamp);
+                query = query.and('measuredTime').onOrBefore(value);
             }
         } else if (param === 'valueGte') {
             query = query.and('value').gte(value);
@@ -174,12 +168,12 @@ async function updateStationsWithSensors(stations: any[], includeSensors: boolea
 }
 
 // Helper function to build a dictionary of allowed parameters
-function buildParamsDictionary(params: ParsedQs, targetParams: string[]) {
-    const dict: Record<string, string> = {};
-    const keys: string[] = Object.keys(params);
+function buildParamsDictionary(params: ParsedQs, targetParams: Set<string>) {
+    const dict: Record<string, any> = {};
+    const keys = new Set<string>(Object.keys(params));
     for (const param of keys) {
-        if (targetParams.includes(param)) {
-            dict[param] = params[param] as string;
+        if (targetParams.has(param)) {
+            dict[param] = params[param];
         }
     }
     return dict;
