@@ -7,7 +7,7 @@ const options = {
         info: {
             title: 'Express API for the Travis database.',
             version: '1.0.0',
-            description: 'This is the documentation of the REST API made for the Travis database server. The API and the database are developed by the IoTitude team during WIMMA Lab 2023.',
+            description: 'This documentation is for the REST API created for the Travis database server. The API and database were developed by the IoTitude team during WIMMA Lab 2023.',
             license: {
                 name: 'Licensed Under MIT',
                 url: 'https://spdx.org/licenses/MIT.html',

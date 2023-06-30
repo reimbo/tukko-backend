@@ -2,6 +2,7 @@ import express from 'express';
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import redis from '../../scripts/redis/searchData';
+import { validateQueryParams } from './queryValidation';
 
 // Set up the router
 export const stations = express.Router()
@@ -156,12 +157,18 @@ export const stations = express.Router()
  *         description: Internal server error.
  */
 stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
-    // Get includeSensors bool
-    const includeSensors = req.query.includeSensors === 'false' ? false : true;
-    // Get params
-    const id = req.params.id;
-    // Search data based on the provided params
     try {
+        // Validate includeSenors parameter
+        if (req.query.includeSensors !== 'true' && req.query.includeSensors !== 'false') {
+            const error: any = new Error(`Invalid value for parameter 'includeSensors'.`);
+            error.statusCode = StatusCodes.BAD_REQUEST;
+            throw error;
+        }
+        // Get includeSensors bool
+        const includeSensors = req.query.includeSensors === 'false' ? false : true;
+        // Get params
+        const id = req.params.id;
+        // Search data based on the provided params
         const data = await redis.searchStationById(id, includeSensors);
         // If no data is found, respond with the 404 status code
         if (data === null) {
@@ -409,14 +416,14 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *         description: Internal server error.
  */
 stations.get('/', async (req: Request, res: Response, next: NextFunction) => {
-    // Get includeSensors bool
-    const includeSensors = req.query.includeSensors === 'false' ? false : true;
-    // Get query params dictionary
-    const params = req.query;
-    // TODO Check params before passing to search
-    // ------------------------------------------
-    // Search data based on the provided params
     try {
+        // Get query params dictionary
+        const params = req.query;
+        // Get includeSensors bool
+        const includeSensors = req.query.includeSensors === 'false' ? false : true;
+        // Validate query parameters
+        validateQueryParams(params);
+        // Search data based on the provided params
         const data = await redis.searchStations(params, includeSensors);
         // If no data is found, respond with the 404 status code
         if (data == null) {

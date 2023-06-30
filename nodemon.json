@@ -1,9 +1,11 @@
 {
   "verbose": true,
   "ignore": [],
-  "watch": ["src/**/*.ts"],
+  "watch": [
+    "dist/**/*.js"
+  ],
   "execMap": {
-    "ts": "ts-node-dev --transpile-only --respawn --inspect=9229 --project tsconfig.json src/index.ts"
+    "ts": "babel-node --extensions '.ts' src/index.ts"
   },
   "ext": "ts"
 }

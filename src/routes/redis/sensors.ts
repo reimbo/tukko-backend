@@ -2,6 +2,7 @@ import express from 'express';
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import redis from '../../scripts/redis/searchData';
+import { validateQueryParams } from './queryValidation';
 
 // Set up the router
 export const sensors = express.Router()
@@ -104,12 +105,12 @@ export const sensors = express.Router()
  *         description: Internal server error.
  */
 sensors.get('/', async (req: Request, res: Response, next: NextFunction) => {
-    // Get query params dictionary
-    const params = req.query;
-    // TODO Check params before passing to search
-    // ------------------------------------------
-    // Search data based on the provided params
     try {
+        // Get query params dictionary
+        const params = req.query;
+        // Validate query parameters
+        validateQueryParams(params);
+        // Search data based on the provided params
         const data = await redis.searchSensors(params);
         // If no data is found, respond with the 404 status code
         if (data === null) {

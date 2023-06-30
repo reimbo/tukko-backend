@@ -4,12 +4,12 @@ services:
     image: redis/redis-stack:latest
     container_name: travis-redis
     restart: always
-    ports:    
-     - 6379:6379
-     - 8001:8001
+    ports:
+      - 6379:6379
+      - 8001:8001
     volumes:
-     - ./redis-stack.conf:/redis-stack.conf
-    
+      - ./redis-stack.conf:/redis-stack.conf
+
   mongoDB:
     image: mongo:jammy
     container_name: travis-archive
