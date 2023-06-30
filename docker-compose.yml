@@ -4,28 +4,31 @@ services:
     depends_on:
       - redis-stack
       - mongoDB
+    image: node:alpine
+    working_dir: /app
     container_name: travis-app
     restart: always
     env_file:
       - .env
       - .env.override
-    build:
-      context: .
-      dockerfile: Dockerfile
     ports:
       - "3001:3001"
-    command: sh -c "node dist/index.js"
+    volumes:
+      - ./dist/:/app/dist
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+    command: sh -c "npm i --omit-dev && node dist/index.js"
 
   redis-stack:
     image: redis/redis-stack:latest
     container_name: travis-redis
     restart: always
-    ports:    
-     - 6379:6379
-     - 8001:8001
+    ports:
+      - 6379:6379
+      - 8001:8001
     volumes:
-     - ./redis-stack.conf:/redis-stack.conf
-    
+      - ./redis-stack.conf:/redis-stack.conf
+
   mongoDB:
     image: mongo:jammy
     container_name: travis-archive
