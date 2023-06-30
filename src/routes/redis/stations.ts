@@ -161,6 +161,7 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
         // Validate includeSenors parameter
         if (req.query.includeSensors !== 'true' && req.query.includeSensors !== 'false') {
             const error: any = new Error(`Invalid value for parameter 'includeSensors'.`);
+            error.error = 'Bad Request';
             error.statusCode = StatusCodes.BAD_REQUEST;
             throw error;
         }
@@ -173,6 +174,7 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
         // If no data is found, respond with the 404 status code
         if (data === null) {
             const error: any = new Error(`Station is not found.`);
+            error.error = "Not Found";
             error.statusCode = StatusCodes.NOT_FOUND;
             throw error;
         }
@@ -428,6 +430,7 @@ stations.get('/', async (req: Request, res: Response, next: NextFunction) => {
         // If no data is found, respond with the 404 status code
         if (data == null) {
             const error: any = new Error(`No stations found.`);
+            error.error = "Not Found";
             error.statusCode = StatusCodes.NOT_FOUND;
             throw error;
         }
@@ -449,8 +452,9 @@ stations.use((err: any, req: Request, res: Response, next: NextFunction) => {
     // Return the error message with the appropriate status code
     res.setHeader('Content-Type', 'application/json');
     const errorResponse = {
-        error: err.message,
         statusCode: statusCode,
+        error: statusCode === 500 ? 'Internal Server Error' : err.error,
+        message: err.message
     };
     res.status(statusCode).json(errorResponse);
 });

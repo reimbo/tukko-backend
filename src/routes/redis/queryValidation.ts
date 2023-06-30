@@ -41,6 +41,7 @@ export function validateQueryParams(params: ParsedQs) {
     for (const param of keys) {
         if (param in parameterTypes && !isValidType(params[param] as string, parameterTypes[param])) {
             const error: any = new Error(`Invalid value for parameter '${param}'.`);
+            error.error = 'Bad Request';
             error.statusCode = StatusCodes.BAD_REQUEST;
             throw error;
         }
