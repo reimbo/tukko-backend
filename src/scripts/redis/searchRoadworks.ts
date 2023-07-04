@@ -1,8 +1,9 @@
 import { ParsedQs } from 'qs';
 import { roadworkRepository } from './client';
+import { Search } from 'redis-om';
 
 // Set allowed params for road works
-const roadworkParams = new Set<string>(['roadNumber', 'roadSection', 'startTimeOnAfter', 'startTimeOnBefore', 'severity']);
+const roadworkParams = new Set<string>(['primaryPointRoadNumber', 'primaryPointRoadSection', 'secondaryPointRoadNumber', 'secondaryPointRoadSection', 'startTimeOnAfter', 'startTimeOnBefore', 'severity']);
 
 // Search for road works based on provided params
 async function searchRoadworks(params: ParsedQs) {
@@ -28,21 +29,47 @@ async function searchRoadworks(params: ParsedQs) {
 // Helper function to build a road work query based on params
 function buildRoadworkQuery(paramsDict: Record<string, any>) {
     let query = roadworkRepository.search();
-    for (const param in paramsDict) {
-        const value = paramsDict[param];
-        if (param === 'startTimeOnAfter' || param === 'startTimeOnBefore') {
-            if (param === 'startTimeOnAfter') {
-                query = query.and('startTime').onOrAfter(value);
-            } else {
-                query = query.and('startTime').onOrBefore(value);
-            }
-        } else if (param === 'roadNumber') {
-            query = query.and((search) => search.where('primaryPointRoadNumber').equals(value).or('secondaryPointRoadNumber').equals(value));
-        } else if (param === 'roadSection') {
-            query = query.and((search) => search.where('primaryPointRoadSection').equals(value).or('secondaryPointRoadSection').equals(value));
-        }  else {
-            query = query.and(param).equals(value);
+    // Get values for further checking
+    const primaryPointRoadNumber = paramsDict['primaryPointRoadNumber'];
+    const primaryPointRoadSection = paramsDict['primaryPointRoadSection'];
+    const secondaryPointRoadNumber = paramsDict['secondaryPointRoadNumber'];
+    const secondaryPointRoadSection = paramsDict['secondaryPointRoadSection'];
+    // If all params defined and primary point's road number equals secondary point's road number, define a range between road sections
+    if (primaryPointRoadNumber && secondaryPointRoadNumber && primaryPointRoadSection && secondaryPointRoadSection) {
+        if (primaryPointRoadNumber === secondaryPointRoadNumber) {
+            query = query.where((search) => search
+                .where((search) => search
+                    .where('primaryPointRoadSection').between(primaryPointRoadSection, secondaryPointRoadSection)
+                    .or('secondaryPointRoadSection').between(secondaryPointRoadSection, primaryPointRoadSection))
+                .or((search) => search
+                    .where('secondaryPointRoadSection').between(primaryPointRoadSection, secondaryPointRoadSection)
+                    .or('secondaryPointRoadSection').between(secondaryPointRoadSection, primaryPointRoadSection)));
         }
+        for (const param in paramsDict) {
+            if (param !== 'primaryPointRoadSection' && param !== 'secondaryPointRoadSection') {
+                query = buildSingleParamQuery(query, param, paramsDict[param]);
+            }
+        }
+    }
+    // Else if primary point's road number does not equal secondary point's road number, build the default query
+    else {
+        for (const param in paramsDict) {
+            query = buildSingleParamQuery(query, param, paramsDict[param]);
+        }
+    }
+    return query;
+}
+
+// Helper function to build a query for a single param
+function buildSingleParamQuery(query: Search, param: string, value: any) {
+    if (param === 'startTimeOnAfter' || param === 'startTimeOnBefore') {
+        if (param === 'startTimeOnAfter') {
+            query = query.and('startTime').onOrAfter(value);
+        } else {
+            query = query.and('startTime').onOrBefore(value);
+        }
+    } else {
+        query = query.and(param).equals(value);
     }
     return query;
 }
