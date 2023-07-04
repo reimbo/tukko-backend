@@ -99,6 +99,8 @@ export const sensors = express.Router()
  *                     format: float
  *                     description: Sensor value.
  *                     example: 100
+ *       400:
+ *         description: Invalid parameter value.
  *       404:
  *         description: Sensors are not found.
  *       500:

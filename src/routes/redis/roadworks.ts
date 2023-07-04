@@ -175,6 +175,8 @@ export const roadworks = express.Router()
  *                           type: string
  *                           description: Quantity unit.
  *                           example: km/h
+ *       400:
+ *         description: Invalid parameter value.
  *       404:
  *         description: Road works are not found.
  *       500:

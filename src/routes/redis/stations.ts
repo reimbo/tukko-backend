@@ -151,6 +151,8 @@ export const stations = express.Router()
  *                           format: float
  *                           description: Sensor value.
  *                           example: 100
+ *       400:
+ *         description: Invalid parameter value.
  *       404:
  *         description: Station is not found.
  *       500:
@@ -412,6 +414,8 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *                           format: float
  *                           description: Sensor value.
  *                           example: 100
+ *       400:
+ *         description: Invalid parameter value.
  *       404:
  *         description: Stations are not found.
  *       500:
