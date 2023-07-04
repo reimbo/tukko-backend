@@ -69,7 +69,7 @@ async function loadSensors(url: string) {
     // Check if data has been updated
     if (await isDataUpdated(url, 'sensor')) {
       // Fetch data
-      let response: AxiosResponse = await axios.get(url, axiosConf);
+      const response: AxiosResponse = await axios.get(url, axiosConf);
       // Save sensors to the repository
       for (const station of response.data.stations) {
         const sensors = station.sensorValues
@@ -165,14 +165,14 @@ async function loadStations(url: string) {
   }
 }
 
-// Function to load all data
+// Export the function loading all data
 export async function loadData() {
   // Load stations and sensors data
   await loadSensors(urlSensors);
   await loadStations(urlStations);
 }
 
-// Function to load sensor data
+// Export the function loading sensor data
 export async function loadSensorData() {
   // Load stations and sensors data
   await loadSensors(urlSensors);

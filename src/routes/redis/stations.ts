@@ -1,8 +1,8 @@
 import express from 'express';
 import { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import redis from '../../scripts/redis/searchData';
-import { validateQueryParams } from './queryValidation';
+import redis from '../../scripts/redis/searchStations';
+import { validateStationQueryParams } from './queryValidation';
 
 // Set up the router
 export const stations = express.Router()
@@ -424,7 +424,7 @@ stations.get('/', async (req: Request, res: Response, next: NextFunction) => {
         // Get includeSensors bool
         const includeSensors = req.query.includeSensors === 'false' ? false : true;
         // Validate query parameters
-        validateQueryParams(params);
+        validateStationQueryParams(params);
         // Search data based on the provided params
         const data = await redis.searchStations(params, includeSensors);
         // If no data is found, respond with the 404 status code
