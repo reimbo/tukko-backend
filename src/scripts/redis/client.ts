@@ -2,7 +2,7 @@
 require('dotenv').config();
 import { createClient } from 'redis';
 import { Repository } from 'redis-om';
-import { stationSchema, sensorSchema } from '../../models/redis/tmsModels';
+import { stationSchema, sensorSchema, roadworkSchema } from '../../models/redis/tmsModels';
 
 // Create client for connections to Redis
 const client = createClient({
@@ -13,15 +13,18 @@ client.on('error', (err: any) => console.log('Redis Client Error', err));
 
 let stationRepository: Repository;
 let sensorRepository: Repository;
+let roadworkRepository: Repository;
 (async () => {
     // Connect to Redis
     await client.connect();
     // Create repositories
     stationRepository = new Repository(stationSchema, client);
     sensorRepository = new Repository(sensorSchema, client);
+    roadworkRepository = new Repository(roadworkSchema, client);
     // Create indices in the repositories for efficient searching
     await stationRepository.createIndex();
     await sensorRepository.createIndex();
+    await roadworkRepository.createIndex();
 })()
 
-export { stationRepository, sensorRepository }
+export { client, stationRepository, sensorRepository, roadworkRepository }
