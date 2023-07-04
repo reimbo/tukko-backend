@@ -15,19 +15,33 @@ export const roadworks = express.Router()
  *     description: Retrieve a list of road works. If no parameters are provided, all road works are retrieved.
  *     parameters:
  *       - in: query
- *         name: roadNumber
+ *         name: primaryPointRoadNumber
  *         schema:
  *           type: integer
- *         description: Query road works based on a road number.
+ *         description: Query road works based on a primary point's road number.
  *         required: false
  *         example: 8102
  *       - in: query
- *         name: roadSection
+ *         name: primaryPointRoadSection
  *         schema:
  *           type: integer
- *         description: Query road works based on a road section.
+ *         description: Query road works based on a primary point's road section. If secondaryPointRoadNumber is defined and primaryPointRoadNumber equals secondaryPointRoadNumber, use primaryPointRoadSection and secondaryPointRoadSection to define a range between sections.
  *         required: false
  *         example: 1
+ *       - in: query
+ *         name: secondaryPointRoadNumber
+ *         schema:
+ *           type: integer
+ *         description: Query road works based on a secondary point's road number.
+ *         required: false
+ *         example: 8102
+ *       - in: query
+ *         name: secondaryPointRoadSection
+ *         schema:
+ *           type: integer
+ *         description: Query road works based on a secondary point's road section. If secondaryPointRoadNumber is defined and primaryPointRoadNumber equals secondaryPointRoadNumber, use primaryPointRoadSection and secondaryPointRoadSection to define a range between sections.
+ *         required: false
+ *         example: 5
  *       - in: query
  *         name: startTimeOnAfter
  *         schema:
