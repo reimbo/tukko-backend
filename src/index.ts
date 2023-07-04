@@ -11,9 +11,11 @@ require('dotenv').config();
 import express from 'express';
 const swaggerUi = require('swagger-ui-express');
 import { swaggerSpec } from './scripts/swagger';
-import { loadData, loadSensorData } from './scripts/redis/loadData';
+import { loadData, loadSensorData } from './scripts/redis/loadStations';
+import { loadRoadworkData } from './scripts/redis/loadRoadworks';
 import { stations } from './routes/redis/stations';
 import { sensors } from './routes/redis/sensors';
+import { roadworks } from './routes/redis/roadworks';
 import { scheduleScript } from './scripts/schedule';
 
 // Set up the server
@@ -28,12 +30,14 @@ app.listen(port, () => {
 // Use the routes
 app.use('/stations', stations);
 app.use('/sensors', sensors);
+app.use('/roadworks', roadworks);
 // Set up the Swagger route
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Schedule data loading processes for Redis database with time rate defined in milliseconds
 scheduleScript(loadData, 0, 60000 * 60 /* rate=60min */);
-scheduleScript(loadSensorData, 60000 * 3 /* startDelay=3min */, 60000 /* rate=1min */);
+scheduleScript(loadSensorData, 0, 60000 /* rate=1min */);
+scheduleScript(loadRoadworkData, 0, 60000 /* rate=1min */);
 // -----------------------------------------------------------------------------------------------
 
 // ---------------------------------------- MONGO SERVER ----------------------------------------

@@ -1,4 +1,4 @@
-import { Repository, Schema } from 'redis-om';
+import { Schema } from 'redis-om';
 
 // Redis schema for storing stations
 export const stationSchema = new Schema('station', {
@@ -43,4 +43,23 @@ export const sensorSchema = new Schema('sensor', {
   value: { type: 'number', sortable: true },
   // sensorValueDescriptionFi: { type: 'text' },
   // sensorValueDescriptionEn: { type: 'text' }
+});
+
+// Redis schema for storing road work phases
+export const roadworkSchema = new Schema("roadwork", {
+  id: { type: 'string' },
+  dataUpdatedTime: { type: 'date' },
+  primaryPointRoadNumber: { type: 'number', sortable: true },
+  primaryPointRoadSection: { type: 'number', sortable: true },
+  // primaryPointDistanceFromRoadSectionStart: { type: 'number', sortable: true },
+  secondaryPointRoadNumber: { type: 'number', sortable: true },
+  secondaryPointRoadSection: { type: 'number', sortable: true },
+  // secondaryPointDistanceFromRoadSectionStart: { type: 'number', sortable: true },
+  direction: { type: 'string' },
+  startTime: { type: 'date', sortable: true },
+  endTime: { type: 'date' },
+  severity: { type: 'string' },
+  // workingHours: { type: 'string' },
+  // workTypes: { type: 'string' },
+  // restrictions: { type: 'string[]' }
 });
