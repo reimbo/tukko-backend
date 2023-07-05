@@ -79,7 +79,7 @@ async function loadRoadworks(url: string) {
                 }
             }
         } else {
-            console.log('REDIS: Database already contatins the latest road work data.');
+            console.log('REDIS: Database already contains the latest road work data.');
         }
     } catch (error: any) {
         throw new Error('Error loading road works: ' + error.message);
