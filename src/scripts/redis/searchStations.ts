@@ -160,6 +160,8 @@ async function updateStationsWithSensors(stations: any[], includeSensors: boolea
             let sensors: any[] = [];
             for (const sensorId of sensorIds) {
                 const sensor = await sensorRepository.fetch(`${station.id}:${sensorId}`);
+                // Skip if the sensor is not found (empty)
+                if (Object.keys(sensor).length === 0) continue;
                 sensors.push(sensor);
             }
             station.sensors = sensors;
