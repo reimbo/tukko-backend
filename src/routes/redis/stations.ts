@@ -160,15 +160,16 @@ export const stations = express.Router()
  */
 stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const includeSensorsValue = req.query.includeSensors;
         // Validate includeSenors parameter
-        if (req.query.includeSensors !== 'true' && req.query.includeSensors !== 'false') {
+        if (includeSensorsValue && includeSensorsValue !== 'true' && includeSensorsValue !== 'false') {
             const error: any = new Error(`Invalid value for parameter 'includeSensors'.`);
             error.error = 'Bad Request';
             error.statusCode = StatusCodes.BAD_REQUEST;
             throw error;
         }
         // Get includeSensors bool
-        const includeSensors = req.query.includeSensors === 'false' ? false : true;
+        const includeSensors = includeSensorsValue === 'false' ? false : true;
         // Get params
         const id = req.params.id;
         // Search data based on the provided params
