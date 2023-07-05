@@ -101,7 +101,7 @@ async function loadSensors(url: string) {
         }
       }
     } else {
-      console.log('REDIS: Database already contatins the latest sensor data.');
+      console.log('REDIS: Database already contains the latest sensor data.');
     }
   } catch (error: any) {
     throw new Error('Error loading sensors: ' + error.message);
@@ -156,7 +156,7 @@ async function loadStations(url: string) {
         if (!stationIds.has(stationId)) await stationRepository.remove(stationId);
       }
     } else {
-      console.log('REDIS: Database already contatins the latest station data.');
+      console.log('REDIS: Database already contains the latest station data.');
     }
   } catch (error: any) {
     throw new Error('Error loading stations: ' + error.message);
