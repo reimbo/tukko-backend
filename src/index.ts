@@ -4,6 +4,7 @@ import { fetch } from "./scripts/fetch";
 import { addToMongoDB, runAggregation } from "./scripts/saveToMongo";
 import { StationData } from './models/tms_data_model';
 import { checkFetchTime } from './scripts/checkFetchTime';
+import cors from "cors";
 
 // ---------------------------------------- REDIS SERVER ----------------------------------------
 // Dependencies
@@ -22,6 +23,10 @@ import { scheduleScript } from './scripts/schedule';
 export const app = express();
 // Default port for backend is 3001
 export const port = (process.env.PORT || 3001) as number;
+
+// Add cors
+app.use(cors())
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
