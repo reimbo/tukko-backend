@@ -129,6 +129,11 @@ async function loadStations(url: string) {
           tmsNumber: station.properties.tmsNumber,
           name: station.properties.name,
           dataUpdatedTime: station.properties.dataUpdatedTime,
+          names: {
+            fi: station.properties.names.fi,
+            sv: station.properties.names.sv || station.properties.names.fi,
+            en: station.properties.names.en || station.properties.names.fi
+          },
           coordinates: {
             longitude: station.geometry.coordinates[0],
             latitude: station.geometry.coordinates[1]
@@ -145,7 +150,9 @@ async function loadStations(url: string) {
           direction1MunicipalityCode: station.properties.direction1MunicipalityCode,
           direction2Municipality: station.properties.direction2Municipality,
           direction2MunicipalityCode: station.properties.direction2MunicipalityCode,
-          sensors: sensors
+          sensors: sensors,
+          freeFlowSpeed1: station.properties.freeFlowSpeed1,
+          freeFlowSpeed2: station.properties.freeFlowSpeed2
         });
         stationsCount++;
       }
