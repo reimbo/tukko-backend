@@ -6,6 +6,7 @@ export const stationSchema = new Schema('station', {
   id: { type: 'number', sortable: true },
   tmsNumber: { type: 'number', sortable: true },
   name: { type: 'string' },
+  // names: { type: 'string[]' },
   dataUpdatedTime: { type: 'date' },
   // collectionStatus: { type: 'string' },
   // state: { type: 'string' },
@@ -25,8 +26,8 @@ export const stationSchema = new Schema('station', {
   direction1MunicipalityCode: { type: 'number', sortable: true },
   direction2Municipality: { type: 'string' },
   direction2MunicipalityCode: { type: 'number', sortable: true },
-  // freeFlowSpeed1: { type: 'number', sortable: true },
-  // freeFlowSpeed2: { type: 'number', sortable: true },
+  freeFlowSpeed1: { type: 'number', sortable: true },
+  freeFlowSpeed2: { type: 'number', sortable: true },
   sensors: { type: 'string[]' }
 });
 
@@ -35,14 +36,14 @@ export const sensorSchema = new Schema('sensor', {
   id: { type: 'number', sortable: true },
   stationId: { type: 'number', sortable: true },
   name: { type: 'string' },
-  // shortName: { type: 'string' },
+  shortName: { type: 'string' },
   timeWindowStart: { type: 'date' },
   timeWindowEnd: { type: 'date' },
   measuredTime: { type: 'date', sortable: true },
   unit: { type: 'string' },
-  value: { type: 'number', sortable: true },
-  // sensorValueDescriptionFi: { type: 'text' },
-  // sensorValueDescriptionEn: { type: 'text' }
+  sensorValueDescriptionFi: { type: 'text' },
+  sensorValueDescriptionEn: { type: 'text' },
+  value: { type: 'number', sortable: true }
 });
 
 // Redis schema for storing road work phases

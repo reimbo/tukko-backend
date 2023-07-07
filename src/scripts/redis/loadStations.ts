@@ -83,10 +83,13 @@ async function loadSensors(url: string) {
               id: sensor.id,
               stationId: sensor.stationId,
               name: sensor.name,
+              shortName: sensor.shortName,
               timeWindowStart: sensor.timeWindowStart,
               timeWindowEnd: sensor.timeWindowEnd,
               measuredTime: sensor.measuredTime,
               unit: sensor.unit,
+              sensorValueDescriptionFi: sensor.sensorValueDescriptionFi,
+              sensorValueDescriptionEn: sensor.sensorValueDescriptionEn,
               value: sensor.value
             });
             // Set time to live for the sensor key
@@ -128,12 +131,12 @@ async function loadStations(url: string) {
           id: station.id,
           tmsNumber: station.properties.tmsNumber,
           name: station.properties.name,
-          dataUpdatedTime: station.properties.dataUpdatedTime,
           names: {
             fi: station.properties.names.fi,
             sv: station.properties.names.sv || station.properties.names.fi,
             en: station.properties.names.en || station.properties.names.fi
           },
+          dataUpdatedTime: station.properties.dataUpdatedTime,
           coordinates: {
             longitude: station.geometry.coordinates[0],
             latitude: station.geometry.coordinates[1]
@@ -150,9 +153,9 @@ async function loadStations(url: string) {
           direction1MunicipalityCode: station.properties.direction1MunicipalityCode,
           direction2Municipality: station.properties.direction2Municipality,
           direction2MunicipalityCode: station.properties.direction2MunicipalityCode,
-          sensors: sensors,
           freeFlowSpeed1: station.properties.freeFlowSpeed1,
-          freeFlowSpeed2: station.properties.freeFlowSpeed2
+          freeFlowSpeed2: station.properties.freeFlowSpeed2,
+          sensors: sensors
         });
         stationsCount++;
       }
