@@ -3,7 +3,6 @@ import { ParsedQs } from 'qs';
 
 // Dictionary to store expected data types for each parameter of station and sensor queries
 const stationParameterTypes: Record<string, string> = {
-    'includeSensors': 'boolean',
     'longitude': 'number',
     'latitude': 'number',
     'radius': 'number',
@@ -12,6 +11,7 @@ const stationParameterTypes: Record<string, string> = {
     'municipalityCode': 'integer',
     'provinceCode': 'integer',
     'id': 'integer',
+    'stationId': 'integer',
     'measuredTimeOnAfter': 'date-time',
     'measuredTimeOnBefore': 'date-time',
     'valueGte': 'number',
