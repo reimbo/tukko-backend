@@ -22,6 +22,13 @@ export const sensors = express.Router()
  *         required: false
  *         example: 5119
  *       - in: query
+ *         name: stationId
+ *         schema:
+ *           type: integer
+ *         description: Query sensors based on a station ID.
+ *         required: false
+ *         example: 24607
+ *       - in: query
  *         name: measuredTimeOnAfter
  *         schema:
  *           type: string
@@ -70,11 +77,15 @@ export const sensors = express.Router()
  *                   stationId:
  *                     type: integer
  *                     description: Station ID.
- *                     example: 5119
+ *                     example: 24607
  *                   name:
  *                     type: string
  *                     description: Sensor name.
  *                     example: OHITUKSET_5MIN_LIUKUVA_SUUNTA2
+  *                   shortName:
+ *                     type: string
+ *                     description: Sensor short name.
+ *                     example: kpl/h2
  *                   timeWindowStart:
  *                     type: string
  *                     format: date-time

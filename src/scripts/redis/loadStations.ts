@@ -1,7 +1,7 @@
 require('dotenv').config();
 const axios = require('axios').default;
 import { AxiosResponse } from 'axios';
-import { stationRepository, sensorRepository } from './client';
+import { stationRepository, sensorRepository, client } from './client';
 
 // Define the URLs for stations and sensors
 const urlStations = (process.env.TMS_STATION_LIST_URL || 'https://tie.digitraffic.fi/api/tms/v1/stations') as string;
@@ -21,8 +21,10 @@ let sensorsUpdateTimestamp = new Date(0);
 let stationsUpdateTimestamp = new Date(0);
 // IDs of active stations containing sensors values
 let stationIds = new Set<string>();
+// Fetched sensors
+let fetchedSensors: any[] = [];
 // IDs of sensors with 5 min measurement rate
-const fastExpireSensorIDs = new Set<number>([5058, 5061, 5068, 5116, 5119, 5122, 5125, 5152, 5158, 5161, 5164, 5168]);
+const fastExpireSensorIDs = new Set<number>([5058, 5061, 5116, 5119, 5122, 5125, 5158, 5161, 5164, 5168]);
 // IDs of sensors with 60 min measurement rate
 const slowExpireSensorIDs = new Set<number>([5054, 5055, 5056, 5057]);
 // IDs of sensors useless for real time data
@@ -68,6 +70,8 @@ async function loadSensors(url: string) {
     console.log('REDIS: Fetching and storing sensors...');
     // Check if data has been updated
     if (await isDataUpdated(url, 'sensor')) {
+      // Clear fetched sensors
+      fetchedSensors = [];
       // Fetch data
       const response: AxiosResponse = await axios.get(url, axiosConf);
       // Save sensors to the repository
@@ -94,6 +98,8 @@ async function loadSensors(url: string) {
             });
             // Set time to live for the sensor key
             await sensorRepository.expire(id, calculateTimeToLive(sensor));
+            // Add sensor to the set of fetched sensors
+            if (!fetchedSensors.includes(sensor)) fetchedSensors.push(sensor);
             sensorsCount++;
           }
           // Add station IDs to the set of active stations containing sensors values
@@ -124,12 +130,11 @@ async function loadStations(url: string) {
       for (const stationId of stationIds) {
         const response: AxiosResponse = await axios.get(`${url}/${stationId}`, axiosConf);
         const station = response.data;
-        // Filter out sensors useless for real time data
-        const sensors = station.properties.sensors.filter((sensor: any) => !uselessSensorIDs.has(sensor.id));
         // Set entity ID as "stationID"
         await stationRepository.save(`${station.id}`, {
           id: station.id,
           tmsNumber: station.properties.tmsNumber,
+          dataUpdatedTime: station.properties.dataUpdatedTime,
           name: station.properties.name,
           names: {
             fi: station.properties.names.fi,
@@ -157,9 +162,14 @@ async function loadStations(url: string) {
           freeFlowSpeed2: station.properties.freeFlowSpeed2,
           sensors: sensors
         });
+
+        // Append sensors as nested JSON objects
+        const sensors = fetchedSensors.filter((sen) => sen.stationId === station.id);
+        if (sensors) client.json.set(`station:${station.id}`, '$.sensors', sensors);
         stationsCount++;
       }
-      // Remove from the repository all stations that are not in the stationIds set
+
+      // Remove from the repository all stations that are not in the statio4nIds set
       const storedStations = await stationRepository.search().return.all();
       for (const station of storedStations) {
         const stationId = station.id as string;
