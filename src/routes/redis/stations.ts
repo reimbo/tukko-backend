@@ -21,14 +21,6 @@ export const stations = express.Router()
  *         example: 24607
  *         description: Station ID.
  *         required: true
- *       - in: query
- *         name: includeSensors
- *         schema:
- *           type: boolean
- *           enum: [true, false]
- *         default: true
- *         description: True by default. If set to true, sensor values are attached to each station. If set to false, only IDs of sensors are returned.
- *         required: false
 *     responses:
  *       200:
  *         description: A list of stations.
@@ -47,15 +39,22 @@ export const stations = express.Router()
  *                     type: integer
  *                     description: Station TMS number.
  *                     example: 1607
- *                   name:
- *                     type: string
- *                     description: Station name.
- *                     example: vt1_Karnainen
  *                   dataUpdatedTime:
  *                     type: string
  *                     format: date-time
  *                     description: UTC timestamp of the latest station data.
  *                     example: 2023-05-30T15:13:26.000Z
+ *                   name:
+ *                     type: string
+ *                     description: Station name.
+ *                     example: vt1_Karnainen
+ *                   names:
+ *                     type: string
+ *                     description: Station name in different languages.
+ *                     example:
+ *                       fi: Tie 1 Karnainen
+ *                       sv: Väg 1 Karnais
+ *                       en: Road 1 Karnainen
  *                   coordinates:
  *                     type: string
  *                     description: Station longitude and latitude coordinates.
@@ -110,6 +109,14 @@ export const stations = express.Router()
  *                     type: integer
  *                     description: Municipality code.
  *                     example: 91
+ *                   freeFlowSpeed1:
+ *                     type: integer
+ *                     description: Free flow speed to direction 1 [km/h].
+ *                     example: 95
+ *                   freeFlowSpeed2:
+ *                     type: integer
+ *                     description: Free flow speed to direction 1 [km/h].
+ *                     example: 95
  *                   sensors:
  *                     type: array
  *                     items:
@@ -127,6 +134,10 @@ export const stations = express.Router()
  *                           type: string
  *                           description: Sensor name.
  *                           example: OHITUKSET_5MIN_LIUKUVA_SUUNTA2
+ *                         shortName:
+ *                           type: string
+ *                           description: Sensor short name.
+ *                           example: kpl/h2
  *                         timeWindowStart:
  *                           type: string
  *                           format: date-time
@@ -160,20 +171,10 @@ export const stations = express.Router()
  */
 stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const includeSensorsValue = req.query.includeSensors;
-        // Validate includeSenors parameter
-        if (includeSensorsValue && includeSensorsValue !== 'true' && includeSensorsValue !== 'false') {
-            const error: any = new Error(`Invalid value for parameter 'includeSensors'.`);
-            error.error = 'Bad Request';
-            error.statusCode = StatusCodes.BAD_REQUEST;
-            throw error;
-        }
-        // Get includeSensors bool
-        const includeSensors = includeSensorsValue === 'false' ? false : true;
         // Get params
         const id = req.params.id;
         // Search data based on the provided params
-        const data = await redis.searchStationById(id, includeSensors);
+        const data = await redis.searchStationById(id);
         // If no data is found, respond with the 404 status code
         if (data === null) {
             const error: any = new Error(`Station is not found.`);
@@ -196,16 +197,8 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  * /stations:
  *   get:
  *     summary: Retrieve a list of stations.
- *     description: Retrieve a list of stations including sensor values for each station. If no parameters provided, all stations are retrieved.
+ *     description: Retrieve a list of stations including sensor values for each station. If no parameters are provided, all stations are retrieved.
  *     parameters:
- *       - in: query
- *         name: includeSensors
- *         schema:
- *           type: boolean
- *           enum: [true, false]
- *         default: true
- *         description: True by default. If set to true, sensor values are attached to each station. If set to false, only IDs of sensors are returned.
- *         required: false
  *       - in: query
  *         name: longitude
  *         schema:
@@ -311,28 +304,45 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *                     type: integer
  *                     description: Station TMS number.
  *                     example: 1607
- *                   name:
- *                     type: string
- *                     description: Station name.
- *                     example: vt1_Karnainen
  *                   dataUpdatedTime:
  *                     type: string
  *                     format: date-time
  *                     description: UTC timestamp of the latest station data.
  *                     example: 2023-05-30T15:13:26.000Z
- *                   coordinates:
+ *                   name:
  *                     type: string
+ *                     description: Station name.
+ *                     example: vt1_Karnainen
+ *                   names:
+ *                     type: object
+ *                     description: Station name in different languages.
+ *                     properties:
+ *                       fi:
+ *                         type: string
+ *                         example: Tie 1 Karnainen
+ *                       sv:
+ *                         type: string
+ *                         example: Väg 1 Karnais
+ *                       en:
+ *                         type: string
+ *                         example: Road 1 Karnainen
+ *                   coordinates:
+ *                     type: object
  *                     description: Station longitude and latitude coordinates.
- *                     example:
- *                       longitude: 24.079464
- *                       latitude: 60.289063
+ *                     properties:
+ *                       longitude:
+ *                         type: string
+ *                         example: 24.079464
+ *                       latitude:
+ *                         type: string
+ *                         example: 60.289063
  *                   roadNumber:
  *                     type: integer
- *                     description: Number of a road, where the station is located.
+ *                     description: Number of a road where the station is located.
  *                     example: 1
  *                   roadSection:
  *                     type: integer
- *                     description: Section of a road, where the station is located.
+ *                     description: Section of a road where the station is located.
  *                     example: 12
  *                   carriageway:
  *                     type: string
@@ -344,7 +354,7 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *                     example: LEFT
  *                   municipality:
  *                     type: string
- *                     description: Municipality, where the station is located.
+ *                     description: Municipality where the station is located.
  *                     example: Lohja
  *                   municipalityCode:
  *                     type: integer
@@ -352,7 +362,7 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *                     example: 444
  *                   province:
  *                     type: string
- *                     description: Province, where the station is located.
+ *                     description: Province where the station is located.
  *                     example: Uusimaa
  *                   provinceCode:
  *                     type: integer
@@ -374,6 +384,14 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *                     type: integer
  *                     description: Municipality code.
  *                     example: 91
+ *                   freeFlowSpeed1:
+ *                     type: integer
+ *                     description: Free flow speed to direction 1 [km/h].
+ *                     example: 95
+ *                   freeFlowSpeed2:
+ *                     type: integer
+ *                     description: Free flow speed to direction 1 [km/h].
+ *                     example: 95
  *                   sensors:
  *                     type: array
  *                     items:
@@ -391,6 +409,10 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *                           type: string
  *                           description: Sensor name.
  *                           example: OHITUKSET_5MIN_LIUKUVA_SUUNTA2
+ *                         shortName:
+ *                           type: string
+ *                           description: Sensor short name.
+ *                           example: kpl/h2
  *                         timeWindowStart:
  *                           type: string
  *                           format: date-time
@@ -426,12 +448,10 @@ stations.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
         // Get query params dictionary
         const params = req.query;
-        // Get includeSensors bool
-        const includeSensors = req.query.includeSensors === 'false' ? false : true;
         // Validate query parameters
         validateStationQueryParams(params);
         // Search data based on the provided params
-        const data = await redis.searchStations(params, includeSensors);
+        const data = await redis.searchStations(params);
         // If no data is found, respond with the 404 status code
         if (data == null) {
             const error: any = new Error(`No stations found.`);
