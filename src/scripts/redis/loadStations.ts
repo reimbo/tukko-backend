@@ -133,7 +133,6 @@ async function loadStations(url: string) {
 
         // Append sensors as nested JSON objects
         const sensors = fetchedSensors.filter((sen) => sen.stationId === station.id);
-        if (sensors) client.json.set(`station:${station.id}`, '$.sensors', sensors);
         
         // Set entity ID as "stationID"
         await stationRepository.save(`${station.id}`, {
@@ -166,7 +165,7 @@ async function loadStations(url: string) {
           freeFlowSpeed2: station.properties.freeFlowSpeed2,
           sensors: sensors
         });
-
+        if (sensors) client.json.set(`station:${station.id}`, '$.sensors', sensors);
         stationsCount++;
       }
 
