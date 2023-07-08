@@ -130,6 +130,11 @@ async function loadStations(url: string) {
       for (const stationId of stationIds) {
         const response: AxiosResponse = await axios.get(`${url}/${stationId}`, axiosConf);
         const station = response.data;
+
+        // Append sensors as nested JSON objects
+        const sensors = fetchedSensors.filter((sen) => sen.stationId === station.id);
+        if (sensors) client.json.set(`station:${station.id}`, '$.sensors', sensors);
+        
         // Set entity ID as "stationID"
         await stationRepository.save(`${station.id}`, {
           id: station.id,
@@ -141,7 +146,6 @@ async function loadStations(url: string) {
             sv: station.properties.names.sv || station.properties.names.fi,
             en: station.properties.names.en || station.properties.names.fi
           },
-          dataUpdatedTime: station.properties.dataUpdatedTime,
           coordinates: {
             longitude: station.geometry.coordinates[0],
             latitude: station.geometry.coordinates[1]
@@ -163,9 +167,6 @@ async function loadStations(url: string) {
           sensors: sensors
         });
 
-        // Append sensors as nested JSON objects
-        const sensors = fetchedSensors.filter((sen) => sen.stationId === station.id);
-        if (sensors) client.json.set(`station:${station.id}`, '$.sensors', sensors);
         stationsCount++;
       }
 
