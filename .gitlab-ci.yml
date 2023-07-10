@@ -1,0 +1,27 @@
+stages:
+  - build
+  
+.build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --cache=true --cache-copy-layers --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:$IMAGE_TAG
+  tags:
+    - general
+
+build-development:
+  extends:
+    - .build
+  variables:
+    IMAGE_TAG: $CI_COMMIT_SHA
+
+build-test:
+  extends:
+    - .build
+  variables:
+    IMAGE_TAG: $CI_COMMIT_SHA
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
