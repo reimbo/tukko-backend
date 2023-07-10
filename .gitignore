@@ -9,6 +9,3 @@ node_modules/
 
 # TypeScript compilation directory
 dist
-
-#Other
-.gitlab

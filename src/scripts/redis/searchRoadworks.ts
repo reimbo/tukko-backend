@@ -47,21 +47,21 @@ function buildRoadworkQuery(paramsDict: Record<string, any>) {
         }
         for (const param in paramsDict) {
             if (param !== 'primaryPointRoadSection' && param !== 'secondaryPointRoadSection') {
-                query = buildSingleParamQuery(query, param, paramsDict[param]);
+                query = buildDefaultQuery(query, param, paramsDict[param]);
             }
         }
     }
     // Else if primary point's road number does not equal secondary point's road number, build the default query
     else {
         for (const param in paramsDict) {
-            query = buildSingleParamQuery(query, param, paramsDict[param]);
+            query = buildDefaultQuery(query, param, paramsDict[param]);
         }
     }
     return query;
 }
 
 // Helper function to build a query for a single param
-function buildSingleParamQuery(query: Search, param: string, value: any) {
+function buildDefaultQuery(query: Search, param: string, value: any) {
     if (param === 'startTimeOnAfter' || param === 'startTimeOnBefore') {
         if (param === 'startTimeOnAfter') {
             query = query.and('startTime').onOrAfter(value);
@@ -69,7 +69,16 @@ function buildSingleParamQuery(query: Search, param: string, value: any) {
             query = query.and('startTime').onOrBefore(value);
         }
     } else {
-        query = query.and(param).equals(value);
+        // Protect against arrays
+        if (Array.isArray(value)) {
+            const arrayValues: any = value;
+            let subquery = roadworkRepository.search();
+            for (const arrayValue of arrayValues) {
+                subquery = subquery.or(param).equals(arrayValue);
+            }
+            query = query.where(search => subquery)
+        }
+        else query = query.and(param).equals(value);
     }
     return query;
 }

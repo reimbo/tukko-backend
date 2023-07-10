@@ -48,15 +48,30 @@ function isValidType(value: string, expectedType: string) {
     return false;
 }
 
+// Helper function to throw the 400 status code error
+function throwValidationError(param: string) {
+    const error: any = new Error(`Invalid value for parameter '${param}'.`);
+    error.error = 'Bad Request';
+    error.statusCode = StatusCodes.BAD_REQUEST;
+    throw error;
+}
+
 // Helper function to validate query params using passed parameter types
-function validateQueryParams(params: ParsedQs, parameterTypes: Record<string, string>) {
+function validateQueryParams(params: ParsedQs, parameterTypes: Record<string, any>) {
     const keys = new Set<string>(Object.keys(params));
     for (const param of keys) {
-        if (param in parameterTypes && !isValidType(params[param] as string, parameterTypes[param])) {
-            const error: any = new Error(`Invalid value for parameter '${param}'.`);
-            error.error = 'Bad Request';
-            error.statusCode = StatusCodes.BAD_REQUEST;
-            throw error;
+        if (param in parameterTypes) {
+            // Protect against arrays
+            if (Array.isArray(params[param])) {
+                const values: any = params[param];
+                for (const value in values) {
+                    if (!isValidType(value as string, parameterTypes[param])) throwValidationError(value);
+                }
+            }
+            else {
+                const value = params[param] as string;
+                if (!isValidType(value, parameterTypes[param])) throwValidationError(value);
+            }
         }
     }
 }

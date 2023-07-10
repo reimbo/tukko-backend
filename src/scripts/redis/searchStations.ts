@@ -98,7 +98,16 @@ function buildStationQuery(paramsDict: Record<string, any>) {
     // Other params
     for (const param in paramsDict) {
         if (param != 'longitude' && param != 'latitude' && param != 'radius') {
-            query = query.and(param).equals(paramsDict[param]);
+            // Protect against arrays
+            if (Array.isArray(paramsDict[param])) {
+                const arrayValues: any = paramsDict[param];
+                let subquery = stationRepository.search();
+                for (const arrayValue of arrayValues) {
+                    subquery = subquery.or(param).equals(arrayValue);
+                }
+                query = query.where(search => subquery)
+            }
+            else query = query.and(param).equals(paramsDict[param]);
         }
     }
     return query;
@@ -121,7 +130,16 @@ function buildSensorQuery(paramsDict: Record<string, any>) {
         } else if (param === 'valueLte') {
             query = query.and('value').lte(value);
         } else {
-            query = query.and(param).equals(value);
+            // Protect against arrays
+            if (Array.isArray(paramsDict[param])) {
+                const arrayValues: any = paramsDict[param];
+                let subquery = stationRepository.search();
+                for (const arrayValue of arrayValues) {
+                    subquery = subquery.or(param).equals(arrayValue);
+                }
+                query = query.where(search => subquery)
+            }
+            else query = query.and(param).equals(value);
         }
     }
     return query;

@@ -169,7 +169,7 @@ async function loadStations(url: string) {
         stationsCount++;
       }
 
-      // Remove from the repository all stations that are not in the statio4nIds set
+      // Remove from the repository all stations that are not in the stationIds set
       const storedStations = await stationRepository.search().return.all();
       for (const station of storedStations) {
         const stationId = station.id as string;
