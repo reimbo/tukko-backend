@@ -18,150 +18,148 @@ export const stations = express.Router()
  *         name: id
  *         schema:
  *           type: integer
- *         example: 24607
  *         description: Station ID.
+ *         example: 24607
  *         required: true
-*     responses:
+ *     responses:
  *       200:
- *         description: A list of stations.
+ *         description: A station.
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                     description: Station ID.
- *                     example: 24607
- *                   tmsNumber:
- *                     type: integer
- *                     description: Station TMS number.
- *                     example: 1607
- *                   dataUpdatedTime:
- *                     type: string
- *                     format: date-time
- *                     description: UTC timestamp of the latest station data.
- *                     example: 2023-05-30T15:13:26.000Z
- *                   name:
- *                     type: string
- *                     description: Station name.
- *                     example: vt1_Karnainen
- *                   names:
- *                     type: string
- *                     description: Station name in different languages.
- *                     example:
- *                       fi: Tie 1 Karnainen
- *                       sv: Väg 1 Karnais
- *                       en: Road 1 Karnainen
- *                   coordinates:
- *                     type: string
- *                     description: Station longitude and latitude coordinates.
- *                     example:
- *                       longitude: 24.079464
- *                       latitude: 60.289063
- *                   roadNumber:
- *                     type: integer
- *                     description: Number of a road, where the station is located.
- *                     example: 1
- *                   roadSection:
- *                     type: integer
- *                     description: Section of a road, where the station is located.
- *                     example: 12
- *                   carriageway:
- *                     type: string
- *                     description: Carriageway.
- *                     example: DUAL_CARRIAGEWAY_RIGHT_IN_INCREASING_DIRECTION
- *                   side:
- *                     type: string
- *                     description: Road address side information.
- *                     example: LEFT
- *                   municipality:
- *                     type: string
- *                     description: Municipality, where the station is located.
- *                     example: Lohja
- *                   municipalityCode:
- *                     type: integer
- *                     description: Municipality code.
- *                     example: 444
- *                   province:
- *                     type: string
- *                     description: Province, where the station is located.
- *                     example: Uusimaa
- *                   provinceCode:
- *                     type: integer
- *                     description: Province code.
- *                     example: 1
- *                   direction1Municipality:
- *                     type: string
- *                     description: Municipality in the increasing direction of the road.
- *                     example: Turku
- *                   direction1MunicipalityCode:
- *                     type: integer
- *                     description: Municipality code.
- *                     example: 853
- *                   direction2Municipality:
- *                     type: string
- *                     description: Municipality in the decreasing direction of the road.
- *                     example: Helsinki
- *                   direction2MunicipalityCode:
- *                     type: integer
- *                     description: Municipality code.
- *                     example: 91
- *                   freeFlowSpeed1:
- *                     type: integer
- *                     description: Free flow speed to direction 1 [km/h].
- *                     example: 95
- *                   freeFlowSpeed2:
- *                     type: integer
- *                     description: Free flow speed to direction 1 [km/h].
- *                     example: 95
- *                   sensors:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         id:
- *                           type: integer
- *                           description: Sensor ID.
- *                           example: 5119
- *                         stationId:
- *                           type: integer
- *                           description: Station ID.
- *                           example: 24607
- *                         name:
- *                           type: string
- *                           description: Sensor name.
- *                           example: OHITUKSET_5MIN_LIUKUVA_SUUNTA2
- *                         shortName:
- *                           type: string
- *                           description: Sensor short name.
- *                           example: kpl/h2
- *                         timeWindowStart:
- *                           type: string
- *                           format: date-time
- *                           description: UTC timestamp of the latest measurement start datetime.
- *                           example: 2023-06-23T08:58:21.000Z
- *                         timeWindowEnd:
- *                           type: string
- *                           format: date-time
- *                           description: UTC timestamp of the latest measurement end datetime.
- *                           example: 2023-06-23T08:58:21.000Z
- *                         measuredTime:
- *                           type: string
- *                           format: date-time
- *                           description: UTC timestamp of the latest sensor value.
- *                           example: 2023-06-23T08:58:21.000Z
- *                         unit:
- *                           type: string
- *                           description: Sensor measurement unit.
- *                           example: kpl/h
- *                         value:
- *                           type: number
- *                           format: float
- *                           description: Sensor value.
- *                           example: 100
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   description: Station ID.
+ *                   example: 24607
+ *                 tmsNumber:
+ *                   type: integer
+ *                   description: Station TMS number.
+ *                   example: 1607
+ *                 dataUpdatedTime:
+ *                   type: string
+ *                   format: date-time
+ *                   description: UTC timestamp of the latest station data.
+ *                   example: 2023-05-30T15:13:26.000Z
+ *                 name:
+ *                   type: string
+ *                   description: Station name.
+ *                   example: vt1_Karnainen
+ *                 names:
+ *                   type: object
+ *                   description: Station name in different languages.
+ *                   example:
+ *                     fi: Tie 1 Karnainen
+ *                     sv: Väg 1 Karnais
+ *                     en: Road 1 Karnainen
+ *                 coordinates:
+ *                   type: object
+ *                   description: Station longitude and latitude coordinates.
+ *                   example:
+ *                     longitude: 24.079464
+ *                     latitude: 60.289063
+ *                 roadNumber:
+ *                   type: integer
+ *                   description: Number of a road, where the station is located.
+ *                   example: 1
+ *                 roadSection:
+ *                   type: integer
+ *                   description: Section of a road, where the station is located.
+ *                   example: 12
+ *                 carriageway:
+ *                   type: string
+ *                   description: Carriageway.
+ *                   example: DUAL_CARRIAGEWAY_RIGHT_IN_INCREASING_DIRECTION
+ *                 side:
+ *                   type: string
+ *                   description: Road address side information.
+ *                   example: LEFT
+ *                 municipality:
+ *                   type: string
+ *                   description: Municipality, where the station is located.
+ *                   example: Lohja
+ *                 municipalityCode:
+ *                   type: integer
+ *                   description: Municipality code.
+ *                   example: 444
+ *                 province:
+ *                   type: string
+ *                   description: Province, where the station is located.
+ *                   example: Uusimaa
+ *                 provinceCode:
+ *                   type: integer
+ *                   description: Province code.
+ *                   example: 1
+ *                 direction1Municipality:
+ *                   type: string
+ *                   description: Municipality in the increasing direction of the road.
+ *                   example: Turku
+ *                 direction1MunicipalityCode:
+ *                   type: integer
+ *                   description: Municipality code.
+ *                   example: 853
+ *                 direction2Municipality:
+ *                   type: string
+ *                   description: Municipality in the decreasing direction of the road.
+ *                   example: Helsinki
+ *                 direction2MunicipalityCode:
+ *                   type: integer
+ *                   description: Municipality code.
+ *                   example: 91
+ *                 freeFlowSpeed1:
+ *                   type: integer
+ *                   description: Free flow speed to direction 1 [km/h].
+ *                   example: 95
+ *                 freeFlowSpeed2:
+ *                   type: integer
+ *                   description: Free flow speed to direction 1 [km/h].
+ *                   example: 95
+ *                 sensors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         description: Sensor ID.
+ *                         example: 5119
+ *                       stationId:
+ *                         type: integer
+ *                         description: Station ID.
+ *                         example: 24607
+ *                       name:
+ *                         type: string
+ *                         description: Sensor name.
+ *                         example: OHITUKSET_5MIN_LIUKUVA_SUUNTA2
+ *                       shortName:
+ *                         type: string
+ *                         description: Sensor short name.
+ *                         example: kpl/h2
+ *                       timeWindowStart:
+ *                         type: string
+ *                         format: date-time
+ *                         description: UTC timestamp of the latest measurement start datetime.
+ *                         example: 2023-06-23T08:58:21.000Z
+ *                       timeWindowEnd:
+ *                         type: string
+ *                         format: date-time
+ *                         description: UTC timestamp of the latest measurement end datetime.
+ *                         example: 2023-06-23T08:58:21.000Z
+ *                       measuredTime:
+ *                         type: string
+ *                         format: date-time
+ *                         description: UTC timestamp of the latest sensor value.
+ *                         example: 2023-06-23T08:58:21.000Z
+ *                       unit:
+ *                         type: string
+ *                         description: Sensor measurement unit.
+ *                         example: kpl/h
+ *                       value:
+ *                         type: number
+ *                         format: float
+ *                         description: Sensor value.
+ *                         example: 100
  *       400:
  *         description: Invalid parameter value.
  *       404:

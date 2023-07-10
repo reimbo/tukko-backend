@@ -8,10 +8,10 @@
     "compose:dev": "docker-compose -f dev-compose.yml up -d --build",
     "compose:prod": "docker compose -f docker-compose.yml up -d --build",
     "compose:down": "docker compose -f docker-compose.yml down --volumes",
-    "debug": "ts-node-dev --transpile-only --respawn --inspect=9229 --project tsconfig.json src/index.ts",
     "serve": "npx wait-on dist/index.js && nodemon dist/index.js",
     "test": "jest",
-    "dev": "npm-run-all -p compose:dev debug",
+    "dev": "npm-run-all -p compose:dev build serve",
+    "debug": "ts-node-dev --transpile-only --respawn --inspect=9229 --project tsconfig.json src/index.ts",
     "prod": "npm-run-all -p build compose:prod"
   },
   "repository": {
