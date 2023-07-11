@@ -3,6 +3,7 @@ import { stationRepository } from "./client";
 
 // Set allowed params for each object type
 const stationParams = new Set<string>([
+  "collectionStatus",
   "roadNumber",
   "roadSection",
   "municipalityCode",
