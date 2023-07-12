@@ -34,5 +34,6 @@ services:
     container_name: travis-archive
     env_file:
       - .env
+      - .env.override
     ports:
       - "2717:27017"
