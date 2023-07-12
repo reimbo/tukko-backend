@@ -3,8 +3,8 @@ import { Schema } from "redis-om";
 // Redis schema for storing stations
 export const stationSchema = new Schema("station", {
   // type: { type: 'string' },
-  id: { type: "number", sortable: true },
-  tmsNumber: { type: "number", sortable: true },
+  id: { type: "number" },
+  tmsNumber: { type: "number" },
   dataUpdatedTime: { type: "date" },
   name: { type: "string" },
   collectionStatus: { type: "text", sortable: true },
@@ -22,11 +22,11 @@ export const stationSchema = new Schema("station", {
   province: { type: "string" },
   provinceCode: { type: "number", sortable: true },
   direction1Municipality: { type: "string" },
-  direction1MunicipalityCode: { type: "number", sortable: true },
+  direction1MunicipalityCode: { type: "number" },
   direction2Municipality: { type: "string" },
-  direction2MunicipalityCode: { type: "number", sortable: true },
-  freeFlowSpeed1: { type: "number", sortable: true },
-  freeFlowSpeed2: { type: "number", sortable: true },
+  direction2MunicipalityCode: { type: "number" },
+  freeFlowSpeed1: { type: "number" },
+  freeFlowSpeed2: { type: "number" },
 });
 
 // Redis schema for storing road work phases
