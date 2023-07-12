@@ -65,7 +65,21 @@ function buildStationQuery(paramsDict: Record<string, any>) {
   }
   // Other params
   for (const param in paramsDict) {
-    if (param != "longitude" && param != "latitude" && param != "radius") {
+    if (param === "collectionStatus") {
+      // Protect against arrays
+      if (Array.isArray(paramsDict[param])) {
+        const arrayValues: any = paramsDict[param];
+        let subquery = stationRepository.search();
+        for (const arrayValue of arrayValues) {
+          subquery = subquery.or(param).match(arrayValue);
+        }
+        query = query.where((search) => subquery);
+      } else query = query.and(param).match(paramsDict[param]);
+    } else if (
+      param !== "longitude" &&
+      param !== "latitude" &&
+      param !== "radius"
+    ) {
       // Protect against arrays
       if (Array.isArray(paramsDict[param])) {
         const arrayValues: any = paramsDict[param];
