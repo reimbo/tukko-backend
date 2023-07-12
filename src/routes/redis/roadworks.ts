@@ -1,11 +1,11 @@
-import express from 'express';
-import { NextFunction, Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
-import redis from '../../scripts/redis/searchRoadworks';
-import { validateRoadworkQueryParams } from './queryValidation';
+import express from "express";
+import { NextFunction, Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
+import redis from "../../scripts/redis/searchRoadworks";
+import { validateRoadworkQueryParams } from "./queryValidation";
 
 // Set up the router
-export const roadworks = express.Router()
+export const roadworks = express.Router();
 
 /**
  * @swagger
@@ -182,42 +182,42 @@ export const roadworks = express.Router()
  *       500:
  *         description: Internal server error.
  */
-roadworks.get('/', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        // Get query params dictionary
-        const params = req.query;
-        // Validate query parameters
-        validateRoadworkQueryParams(params);
-        // Search data based on the provided params
-        const data = await redis.searchRoadworks(params);
-        // If no data is found, respond with the 404 status code
-        if (data === null) {
-            const error: any = new Error(`No road works found.`);
-            error.error = "Not Found";
-            error.statusCode = StatusCodes.NOT_FOUND;
-            throw error;
-        }
-        // Set the content type to JSON
-        res.setHeader('Content-Type', 'application/json');
-        // Respond with the 200 status code
-        res.status(StatusCodes.OK).send(data);
-    } catch (err) {
-        // Pass the error to the error handling middleware
-        next(err);
+roadworks.get("/", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Get query params dictionary
+    const params = req.query;
+    // Validate query parameters
+    validateRoadworkQueryParams(params);
+    // Search data based on the provided params
+    const data = await redis.searchRoadworks(params);
+    // If no data is found, respond with the 404 status code
+    if (data === null) {
+      const error: any = new Error(`No road works found.`);
+      error.error = "Not Found";
+      error.statusCode = StatusCodes.NOT_FOUND;
+      throw error;
     }
+    // Set the content type to JSON
+    res.setHeader("Content-Type", "application/json");
+    // Respond with the 200 status code
+    res.status(StatusCodes.OK).send(data);
+  } catch (err) {
+    // Pass the error to the error handling middleware
+    next(err);
+  }
 });
 
 // Error handling middleware
 roadworks.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    console.error(err)
-    // Determine an appropriate status code based on the error
-    const statusCode = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR
-    // Return the error message with the appropriate status code
-    res.setHeader('Content-Type', 'application/json');
-    const errorResponse = {
-        statusCode: statusCode,
-        error: statusCode === 500 ? 'Internal Server Error' : err.error,
-        message: err.message
-    };
-    res.status(statusCode).json(errorResponse);
+  console.error(err);
+  // Determine an appropriate status code based on the error
+  const statusCode = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
+  // Return the error message with the appropriate status code
+  res.setHeader("Content-Type", "application/json");
+  const errorResponse = {
+    statusCode: statusCode,
+    error: statusCode === 500 ? "Internal Server Error" : err.error,
+    message: err.message,
+  };
+  res.status(statusCode).json(errorResponse);
 });
