@@ -2,7 +2,7 @@ version: '3.8'
 services:
   redis-stack:
     image: redis/redis-stack:latest
-    container_name: travis-redis
+    container_name: tukko-redis
     restart: always
     ports:
       - 6379:6379
@@ -12,7 +12,7 @@ services:
 
   mongoDB:
     image: mongo:jammy
-    container_name: travis-archive
+    container_name: tukko-archive
     env_file:
       - .env
       - .env.override

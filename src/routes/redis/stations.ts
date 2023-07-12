@@ -1,11 +1,11 @@
-import express from 'express';
-import { NextFunction, Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
-import redis from '../../scripts/redis/searchStations';
-import { validateStationQueryParams } from './queryValidation';
+import express from "express";
+import { NextFunction, Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
+import redis from "../../scripts/redis/searchStations";
+import { validateStationQueryParams } from "./queryValidation";
 
 // Set up the router
-export const stations = express.Router()
+export const stations = express.Router();
 
 /**
  * @swagger
@@ -53,6 +53,14 @@ export const stations = express.Router()
  *                     fi: Tie 1 Karnainen
  *                     sv: Väg 1 Karnais
  *                     en: Road 1 Karnainen
+ *                 collectionStatus:
+ *                   type: string
+ *                   description: Station collection status.
+ *                   enum:
+ *                     - GATHERING
+ *                     - REMOVED_TEMPORARILY
+ *                     - REMOVED_PERMANENTLY
+ *                   example: GATHERING
  *                 coordinates:
  *                   type: object
  *                   description: Station longitude and latitude coordinates.
@@ -167,28 +175,31 @@ export const stations = express.Router()
  *       500:
  *         description: Internal server error.
  */
-stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+stations.get(
+  "/:id",
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Get params
-        const id = req.params.id;
-        // Search data based on the provided params
-        const data = await redis.searchStationById(id);
-        // If no data is found, respond with the 404 status code
-        if (data === null) {
-            const error: any = new Error(`Station is not found.`);
-            error.error = "Not Found";
-            error.statusCode = StatusCodes.NOT_FOUND;
-            throw error;
-        }
-        // Set the content type to JSON
-        res.setHeader('Content-Type', 'application/json');
-        // Respond with the 200 status code
-        res.status(StatusCodes.OK).send(data);
+      // Get params
+      const id = req.params.id;
+      // Search data based on the provided params
+      const data = await redis.searchStationById(id);
+      // If no data is found, respond with the 404 status code
+      if (data === null) {
+        const error: any = new Error(`Station is not found.`);
+        error.error = "Not Found";
+        error.statusCode = StatusCodes.NOT_FOUND;
+        throw error;
+      }
+      // Set the content type to JSON
+      res.setHeader("Content-Type", "application/json");
+      // Respond with the 200 status code
+      res.status(StatusCodes.OK).send(data);
     } catch (err) {
-        // Pass the error to the error handling middleware
-        next(err);
+      // Pass the error to the error handling middleware
+      next(err);
     }
-});
+  }
+);
 
 /**
  * @swagger
@@ -197,6 +208,14 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *     summary: Retrieve a list of stations.
  *     description: Retrieve a list of stations including sensor values for each station. If no parameters are provided, all stations are retrieved.
  *     parameters:
+ *       - in: query
+ *         name: collectionStatus
+ *         schema:
+ *           type: string
+ *           enum: [GATHERING, REMOVED_TEMPORARILY, REMOVED_PERMANENTLY ]
+ *         description: Query stations based on collection status.
+ *         required: false
+ *         example: GATHERING
  *       - in: query
  *         name: longitude
  *         schema:
@@ -245,45 +264,6 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *           type: integer
  *         example: 1
  *         description: Query stations based on a province code.
- *       - in: query
- *         name: id
- *         schema:
- *           type: integer
- *         example: 5119
- *         description: Query stations based on a sensor id.
- *         required: false
- *       - in: query
- *         name: measuredTimeOnAfter
- *         schema:
- *           type: string
- *           format: date-time
- *         example: 2020-05-30T15:13:26.000Z
- *         description: Query stations based on the last measured UTC timestamp. Returns stations with sensor values measured on or after the defined datetime. Can be used in combination with measuredTimeOnBefore to define a range.
- *         required: false
- *       - in: query
- *         name: measuredTimeOnBefore
- *         schema:
- *           type: string
- *           format: date-time
- *         example: 2030-05-30T15:13:26.000Z
- *         description: Query stations based on the last measured UTC timestamp. Returns stations with sensor values measured on or before the defined datetime. Can be used in combination with measuredTimeOnAfter to define a range.
- *         required: false
- *       - in: query
- *         name: valueGte
- *         schema:
- *           type: number
- *           format: float
- *         example: 10
- *         description: Query stations based on the value of a sensor. Returns stations with sensor values greater or equal to the defined value. Can be used in combination with ValueLte to define a range.
- *         required: false
- *       - in: query
- *         name: valueLte
- *         schema:
- *           type: number
- *           format: float
- *         example: 5000
- *         description: Query stations based on the value of a sensor. Returns stations with sensor values less or equal to the defined value. Can be used in combination with ValueGte to define a range.
- *         required: false
  *     responses:
  *       200:
  *         description: A list of stations.
@@ -324,6 +304,14 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *                       en:
  *                         type: string
  *                         example: Road 1 Karnainen
+ *                   collectionStatus:
+ *                     type: string
+ *                     description: Station collection status.
+ *                     enum:
+ *                         - GATHERING
+ *                         - REMOVED_TEMPORARILY
+ *                         - REMOVED_PERMANENTLY
+ *                     example: GATHERING
  *                   coordinates:
  *                     type: object
  *                     description: Station longitude and latitude coordinates.
@@ -442,42 +430,42 @@ stations.get('/:id', async (req: Request, res: Response, next: NextFunction) => 
  *       500:
  *         description: Internal server error.
  */
-stations.get('/', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        // Get query params dictionary
-        const params = req.query;
-        // Validate query parameters
-        validateStationQueryParams(params);
-        // Search data based on the provided params
-        const data = await redis.searchStations(params);
-        // If no data is found, respond with the 404 status code
-        if (data == null) {
-            const error: any = new Error(`No stations found.`);
-            error.error = "Not Found";
-            error.statusCode = StatusCodes.NOT_FOUND;
-            throw error;
-        }
-        // Set the content type to JSON
-        res.setHeader('Content-Type', 'application/json');
-        // Respond with the 200 status code
-        res.status(StatusCodes.OK).send(data);
-    } catch (err) {
-        // Pass the error to the error handling middleware
-        next(err);
+stations.get("/", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Get query params dictionary
+    const params = req.query;
+    // Validate query parameters
+    validateStationQueryParams(params);
+    // Search data based on the provided params
+    const data = await redis.searchStations(params);
+    // If no data is found, respond with the 404 status code
+    if (data == null) {
+      const error: any = new Error(`No stations found.`);
+      error.error = "Not Found";
+      error.statusCode = StatusCodes.NOT_FOUND;
+      throw error;
     }
+    // Set the content type to JSON
+    res.setHeader("Content-Type", "application/json");
+    // Respond with the 200 status code
+    res.status(StatusCodes.OK).send(data);
+  } catch (err) {
+    // Pass the error to the error handling middleware
+    next(err);
+  }
 });
 
 // Error handling middleware
 stations.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    console.error(err)
-    // Determine an appropriate status code based on the error
-    const statusCode = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR
-    // Return the error message with the appropriate status code
-    res.setHeader('Content-Type', 'application/json');
-    const errorResponse = {
-        statusCode: statusCode,
-        error: statusCode === 500 ? 'Internal Server Error' : err.error,
-        message: err.message
-    };
-    res.status(statusCode).json(errorResponse);
+  console.error(err);
+  // Determine an appropriate status code based on the error
+  const statusCode = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
+  // Return the error message with the appropriate status code
+  res.setHeader("Content-Type", "application/json");
+  const errorResponse = {
+    statusCode: statusCode,
+    error: statusCode === 500 ? "Internal Server Error" : err.error,
+    message: err.message,
+  };
+  res.status(statusCode).json(errorResponse);
 });
