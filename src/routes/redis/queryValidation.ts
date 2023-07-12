@@ -31,7 +31,11 @@ function isValidType(value: string, expectedType: string) {
   } else if (expectedType === "string") {
     return typeof value === "string";
   } else if (expectedType === "collectionStatus") {
-    return value === "GATHERING" || value === "REMOVED_TEMPORARILY" || value === "REMOVED_PERMANENTLY ";
+    return (
+      value === "GATHERING" ||
+      value === "REMOVED_TEMPORARILY" ||
+      value === "REMOVED_PERMANENTLY"
+    );
   } else if (expectedType === "severity") {
     return value === "LOW" || value === "HIGH" || value === "HIGHEST";
   } else if (expectedType === "number") {

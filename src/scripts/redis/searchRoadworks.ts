@@ -94,16 +94,16 @@ function buildDefaultQuery(query: Search, param: string, value: any) {
     } else {
       query = query.and("startTime").onOrBefore(value);
     }
-  } else {
+  } else if (param === "severity") {
     // Protect against arrays
     if (Array.isArray(value)) {
       const arrayValues: any = value;
       let subquery = roadworkRepository.search();
       for (const arrayValue of arrayValues) {
-        subquery = subquery.or(param).equals(arrayValue);
+        subquery = subquery.or(param).match(arrayValue);
       }
       query = query.where((search) => subquery);
-    } else query = query.and(param).equals(value);
+    } else query = query.and(param).match(value);
   }
   return query;
 }
