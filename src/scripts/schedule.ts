@@ -10,11 +10,11 @@ export async function scheduleScript(
   rate: number
 ) {
   await delayBy(startDelay);
+  console.log(
+    `Running ${script.name} script with a rate of ${rate / 1000} seconds...`
+  );
+  // Run the script
   while (true) {
-    // Run the script
-    console.log(
-      `Running ${script.name} script with a rate of ${rate / 1000} seconds...`
-    );
     await script();
     console.log(`Finished running ${script.name} script.`);
     // Wait for a specific delay using a Promise and setTimeout
