@@ -1,9 +1,13 @@
 import { tmsRouter } from "./routes/tms_data";
 import { connect } from "./scripts/mongo";
 import { fetch } from "./scripts/fetch";
-import { addToMongoDB, isMongoEmpty, runAggregation } from "./scripts/saveToMongo";
-import { StationData } from './models/tms_data_model';
-import { checkFetchTime } from './scripts/checkFetchTime';
+import {
+  addToMongoDB,
+  isMongoEmpty,
+  runAggregation,
+} from "./scripts/saveToMongo";
+import { StationData } from "./models/tms_data_model";
+import { checkFetchTime } from "./scripts/checkFetchTime";
 import cors from "cors";
 
 // ---------------------------------------- REDIS SERVER ----------------------------------------
@@ -37,26 +41,23 @@ app.use("/roadworks", roadworks);
 // Set up the Swagger route
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Schedule data loading processes for Redis database with time rate defined in milliseconds
-scheduleScript(loadStations, 0, 60000 * 60 /* rate=60min */);
-scheduleScript(
-  loadSensors,
-  60000 * 2 /* startDelay=2min */,
-  60000 /* rate=1min */
-);
+// Schedule data loading processes for Redis database with a rate in milliseconds
+scheduleScript(loadStations, 0, 60000 /* rate=1min */);
 scheduleScript(loadRoadworks, 0, 60000 /* rate=1min */);
 // -----------------------------------------------------------------------------------------------
 
 // ---------------------------------------- MONGO SERVER ----------------------------------------
 const searchString = "KESKINOPEUS_5MIN_LIUKUVA_SUUNTA2"; // a sample search term for testing mongoDB aggregation
-connect()
-  .then(async (): Promise<void> => {
-    app.use("/tms", tmsRouter);
-    // Only fetch if data is not up-to-date or at least 5 minutes have passed since the last fetch
-    if (checkFetchTime() || await isMongoEmpty()) {
-      const data: StationData = await fetch(process.env.TMS_STATIONS_DATA_URL || "https://tie.digitraffic.fi/api/tms/v1/stations/data") as StationData;
-      addToMongoDB(data)
-    }
-    // await runAggregation(searchString) // run aggregation and return the search results
-    // await runAggregation("20002")
-  })
+connect().then(async (): Promise<void> => {
+  app.use("/tms", tmsRouter);
+  // Only fetch if data is not up-to-date or at least 5 minutes have passed since the last fetch
+  if (checkFetchTime() || (await isMongoEmpty())) {
+    const data: StationData = (await fetch(
+      process.env.TMS_STATIONS_DATA_URL ||
+        "https://tie.digitraffic.fi/api/tms/v1/stations/data"
+    )) as StationData;
+    addToMongoDB(data);
+  }
+  // await runAggregation(searchString) // run aggregation and return the search results
+  // await runAggregation("20002")
+});
