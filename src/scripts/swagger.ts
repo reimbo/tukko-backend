@@ -20,7 +20,7 @@ const options = {
     },
     servers: [
       {
-        url: (process.env.TRAVIS_DOMAIN || "http://localhost:3001") as string,
+        url: (process.env.TUKKO_DOMAIN || "http://localhost:3001") as string,
         description: "Tukko API",
       },
     ],
