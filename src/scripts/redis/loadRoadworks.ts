@@ -89,7 +89,7 @@ async function storeRoadworks(response: AxiosResponse) {
     for (const announcement of feature.properties.announcements) {
       for (const roadwork of announcement.roadWorkPhases) {
         // Set entity ID as "roadworkID"
-        const id = `${roadwork.id}`;
+        const id = `${roadwork.id}`.substring(4);
         await roadworkRepository.save(id, constructRoadworkObject(roadwork));
         // Generate a list of restrictions for the road work
         const restrictions = generateListOfRestrictions(roadwork);
