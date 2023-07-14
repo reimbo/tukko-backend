@@ -127,51 +127,6 @@ export const stations = express.Router();
  *                   type: integer
  *                   description: Free flow speed to direction 1 [km/h].
  *                   example: 95
- *                 sensors:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                         description: Sensor ID.
- *                         example: 5119
- *                       stationId:
- *                         type: integer
- *                         description: Station ID.
- *                         example: 24607
- *                       name:
- *                         type: string
- *                         description: Sensor name.
- *                         example: OHITUKSET_5MIN_LIUKUVA_SUUNTA2
- *                       shortName:
- *                         type: string
- *                         description: Sensor short name.
- *                         example: kpl/h2
- *                       timeWindowStart:
- *                         type: string
- *                         format: date-time
- *                         description: UTC timestamp of the latest measurement start datetime.
- *                         example: 2023-06-23T08:58:21.000Z
- *                       timeWindowEnd:
- *                         type: string
- *                         format: date-time
- *                         description: UTC timestamp of the latest measurement end datetime.
- *                         example: 2023-06-23T08:58:21.000Z
- *                       measuredTime:
- *                         type: string
- *                         format: date-time
- *                         description: UTC timestamp of the latest sensor value.
- *                         example: 2023-06-23T08:58:21.000Z
- *                       unit:
- *                         type: string
- *                         description: Sensor measurement unit.
- *                         example: kpl/h
- *                       value:
- *                         type: number
- *                         format: float
- *                         description: Sensor value.
- *                         example: 100
  *       400:
  *         description: Invalid parameter value.
  *       404:
@@ -390,51 +345,6 @@ stations.get(
  *                     type: integer
  *                     description: Free flow speed to direction 1 [km/h].
  *                     example: 95
- *                   sensors:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         id:
- *                           type: integer
- *                           description: Sensor ID.
- *                           example: 5119
- *                         stationId:
- *                           type: integer
- *                           description: Station ID.
- *                           example: 24607
- *                         name:
- *                           type: string
- *                           description: Sensor name.
- *                           example: OHITUKSET_5MIN_LIUKUVA_SUUNTA2
- *                         shortName:
- *                           type: string
- *                           description: Sensor short name.
- *                           example: kpl/h2
- *                         timeWindowStart:
- *                           type: string
- *                           format: date-time
- *                           description: UTC timestamp of the latest measurement start datetime.
- *                           example: 2023-06-23T08:58:21.000Z
- *                         timeWindowEnd:
- *                           type: string
- *                           format: date-time
- *                           description: UTC timestamp of the latest measurement end datetime.
- *                           example: 2023-06-23T08:58:21.000Z
- *                         measuredTime:
- *                           type: string
- *                           format: date-time
- *                           description: UTC timestamp of the latest sensor value.
- *                           example: 2023-06-23T08:58:21.000Z
- *                         unit:
- *                           type: string
- *                           description: Sensor measurement unit.
- *                           example: kpl/h
- *                         value:
- *                           type: number
- *                           format: float
- *                           description: Sensor value.
- *                           example: 100
  *       400:
  *         description: Invalid parameter value.
  *       404:
