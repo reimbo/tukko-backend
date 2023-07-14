@@ -1,7 +1,8 @@
 import { ParsedQs } from "qs";
+import { buildParamsDict } from "./buildParamsDict";
 import { stationRepository } from "./client";
 
-// Set allowed params for each object type
+// Set allowed params for station queries
 const stationParams = new Set<string>([
   "collectionStatus",
   "roadNumber",
@@ -12,39 +13,6 @@ const stationParams = new Set<string>([
   "latitude",
   "radius",
 ]);
-
-// Search for a station by ID
-async function searchStationById(id: string) {
-  try {
-    // Query a station based on ID
-    const stationEntity = await stationRepository.fetch(id);
-    // Return null if object is empty
-    return Object.keys(stationEntity).length === 0 ? null : [stationEntity];
-  } catch (error: any) {
-    throw new Error("Error searching station by ID: " + error.message);
-  }
-}
-
-// Search for stations based on provided parameters
-async function searchStations(params: ParsedQs) {
-  try {
-    let stations: any[] = [];
-    // Build dictionary for station params
-    const stationParamsDict = buildParamsDictionary(params, stationParams);
-    // Query stations
-    if (Object.keys(stationParamsDict).length === 0) {
-      // If no params provided, get all stations
-      stations = await stationRepository.search().return.all();
-    } else {
-      // Query stations based on station params
-      stations = await buildStationQuery(stationParamsDict).return.all();
-    }
-    // Return null if list is empty
-    return stations.length === 0 ? null : stations;
-  } catch (error: any) {
-    throw new Error("Error searching stations: " + error.message);
-  }
-}
 
 // Helper function to build a station query based on params
 function buildStationQuery(paramsDict: Record<string, any>) {
@@ -94,16 +62,37 @@ function buildStationQuery(paramsDict: Record<string, any>) {
   return query;
 }
 
-// Helper function to build a dictionary of allowed parameters
-function buildParamsDictionary(params: ParsedQs, targetParams: Set<string>) {
-  const dict: Record<string, any> = {};
-  const keys = new Set<string>(Object.keys(params));
-  for (const param of keys) {
-    if (targetParams.has(param)) {
-      dict[param] = params[param];
-    }
+// Search for a station by ID
+async function searchStationById(id: string) {
+  try {
+    // Query a station based on ID
+    const stationEntity = await stationRepository.fetch(id);
+    // Return null if object is empty
+    return Object.keys(stationEntity).length === 0 ? null : [stationEntity];
+  } catch (error: any) {
+    throw new Error("Error searching station by ID: " + error.message);
   }
-  return dict;
+}
+
+// Search for stations based on provided parameters
+async function searchStations(params: ParsedQs) {
+  try {
+    let stations: any[] = [];
+    // Build dictionary for station params
+    const stationParamsDict = buildParamsDict(params, stationParams);
+    // Query stations
+    if (Object.keys(stationParamsDict).length === 0) {
+      // If no params provided, get all stations
+      stations = await stationRepository.search().return.all();
+    } else {
+      // Query stations based on station params
+      stations = await buildStationQuery(stationParamsDict).return.all();
+    }
+    // Return null if list is empty
+    return stations.length === 0 ? null : stations;
+  } catch (error: any) {
+    throw new Error("Error searching stations: " + error.message);
+  }
 }
 
 // Export search functions

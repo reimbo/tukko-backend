@@ -2,7 +2,11 @@ import express from "express";
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import redis from "../../scripts/redis/searchStations";
-import { validateStationQueryParams } from "./queryValidation";
+import {
+  validateStationQueryParams,
+  throwValidationError,
+} from "./queryValidation";
+import lastUpdateTimestamp from "../../scripts/redis/lastUpdateTimestamp";
 
 // Set up the router
 export const stations = express.Router();
@@ -209,10 +213,18 @@ stations.get(
  *     description: Retrieve a list of stations including sensor values for each station. If no parameters are provided, all stations are retrieved.
  *     parameters:
  *       - in: query
+ *         name: lastUpdated
+ *         schema:
+ *           type: bool
+ *           enum: [true, false]
+ *         description: If parameter is given, result will only contain only update timestamp for stations.
+ *         required: false
+ *         example: false
+ *       - in: query
  *         name: collectionStatus
  *         schema:
  *           type: string
- *           enum: [GATHERING, REMOVED_TEMPORARILY, REMOVED_PERMANENTLY ]
+ *           enum: [GATHERING, REMOVED_TEMPORARILY, REMOVED_PERMANENTLY]
  *         description: Query stations based on collection status.
  *         required: false
  *         example: GATHERING
@@ -245,25 +257,25 @@ stations.get(
  *         schema:
  *           type: integer
  *         example: 1
- *         description: Query stations based on a road number.
+ *         description: Query stations based on a road number. Array params supported.
  *       - in: query
  *         name: roadSection
  *         schema:
  *           type: integer
  *         example: 12
- *         description: Query stations based on a road section.
+ *         description: Query stations based on a road section. Array params supported.
  *       - in: query
  *         name: municipalityCode
  *         schema:
  *           type: integer
  *         example: 444
- *         description: Query stations based on a municipality code.
+ *         description: Query stations based on a municipality code. Array params supported.
  *       - in: query
  *         name: provinceCode
  *         schema:
  *           type: integer
  *         example: 1
- *         description: Query stations based on a province code.
+ *         description: Query stations based on a province code. Array params supported.
  *     responses:
  *       200:
  *         description: A list of stations.
@@ -434,16 +446,25 @@ stations.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get query params dictionary
     const params = req.query;
-    // Validate query parameters
-    validateStationQueryParams(params);
-    // Search data based on the provided params
-    const data = await redis.searchStations(params);
-    // If no data is found, respond with the 404 status code
-    if (data == null) {
-      const error: any = new Error(`No stations found.`);
-      error.error = "Not Found";
-      error.statusCode = StatusCodes.NOT_FOUND;
-      throw error;
+    let data = null;
+    // Check for lastUpdated bool
+    const lastUpdated = params["lastUpdated"];
+    if (lastUpdated && lastUpdated === "true") {
+      data = await lastUpdateTimestamp.stationTimestamp;
+    } else if (lastUpdated && lastUpdated !== "false") {
+      throwValidationError("lastUpdated");
+    } else {
+      // Validate query parameters
+      validateStationQueryParams(params);
+      // Search data based on the provided params
+      data = await redis.searchStations(params);
+      // If no data is found, respond with the 404 status code
+      if (data == null) {
+        const error: any = new Error(`No stations found.`);
+        error.error = "Not Found";
+        error.statusCode = StatusCodes.NOT_FOUND;
+        throw error;
+      }
     }
     // Set the content type to JSON
     res.setHeader("Content-Type", "application/json");

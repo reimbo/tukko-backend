@@ -29,6 +29,21 @@ export const stationSchema = new Schema("station", {
   freeFlowSpeed2: { type: "number" },
 });
 
+// Redis schema for storing sensors
+export const sensorSchema = new Schema("sensor", {
+  id: { type: "number", sortable: true },
+  stationId: { type: "number", sortable: true },
+  name: { type: "string" },
+  shortName: { type: "string" },
+  timeWindowStart: { type: "date" },
+  timeWindowEnd: { type: "date" },
+  measuredTime: { type: "date", sortable: true },
+  unit: { type: "string" },
+  // sensorValueDescriptionFi: { type: "text" },
+  // sensorValueDescriptionEn: { type: "text" },
+  value: { type: "number", sortable: true },
+});
+
 // Redis schema for storing road work phases
 export const roadworkSchema = new Schema("roadwork", {
   id: { type: "string" },
