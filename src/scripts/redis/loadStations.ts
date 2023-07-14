@@ -1,8 +1,8 @@
 require("dotenv").config();
 import axios from "axios";
 import { AxiosResponse } from "axios";
-import { client, stationRepository } from "./client";
-import lastUpdateTimestamp from "./lastUpdateTimestamp";
+import { stationRepository } from "./client";
+import { isStationDataUpdated } from "./lastUpdated";
 
 // Define TMS API URL
 const urlAPI = (process.env.TMS_API_URL ||
@@ -34,7 +34,6 @@ function constructStationObject(station: any) {
       sv: station.properties.names.sv || station.properties.names.fi,
       en: station.properties.names.en || station.properties.names.fi,
     },
-    collectionStatus: station.properties.collectionStatus,
     coordinates: {
       longitude: station.geometry.coordinates[0],
       latitude: station.geometry.coordinates[1],
@@ -87,17 +86,17 @@ export async function loadStations() {
   try {
     console.log("[REDIS] Fetching and storing stations...");
     // Check if station data has been updated
-    if (!(await lastUpdateTimestamp.isStationUpdated)) {
+    if (!(await isStationDataUpdated())) {
       console.log("[REDIS] Database already contains the latest station data.");
       return;
     }
-    // Save station data last update timestamp to the repository
-    client.set(
-      "stationupdatetimestamp",
-      lastUpdateTimestamp.stationTimestamp.toString()
-    );
-    // Get a list of all stations
-    const response: AxiosResponse = await axios.get(urlStations, axiosConf);
+    // Get a list of all active stations
+    const response: AxiosResponse = await axios.get(urlStations, {
+      ...axiosConf,
+      params: {
+        situationType: "ACTIVE",
+      },
+    });
     const stations = response.data.features;
     // Check if any data has been fetched
     if (stations.length === 0) {

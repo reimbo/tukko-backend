@@ -2,7 +2,7 @@ require("dotenv").config();
 import axios from "axios";
 import { AxiosResponse } from "axios";
 import { sensorRepository } from "./client";
-import lastUpdateTimestamp from "./lastUpdateTimestamp";
+import { isSensorDataUpdated } from "./lastUpdated";
 
 // Define TMS API URL
 const urlAPI = (process.env.TMS_API_URL ||
@@ -99,7 +99,7 @@ export async function loadSensors() {
   try {
     console.log("[REDIS] Fetching and storing sensors...");
     // Check if data has been updated
-    if (!(await lastUpdateTimestamp.isDataUpdated)) {
+    if (!(await isSensorDataUpdated())) {
       console.log("[REDIS] Database already contains the latest sensor data.");
       return;
     }

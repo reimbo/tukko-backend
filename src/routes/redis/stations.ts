@@ -6,7 +6,7 @@ import {
   validateStationQueryParams,
   throwValidationError,
 } from "./queryValidation";
-import lastUpdateTimestamp from "../../scripts/redis/lastUpdateTimestamp";
+import { fetchStationLastUpdated } from "../../scripts/redis/lastUpdated";
 
 // Set up the router
 export const stations = express.Router();
@@ -360,7 +360,7 @@ stations.get("/", async (req: Request, res: Response, next: NextFunction) => {
     // Check for lastUpdated bool
     const lastUpdated = params["lastUpdated"];
     if (lastUpdated && lastUpdated === "true") {
-      data = await lastUpdateTimestamp.stationTimestamp;
+      data = await fetchStationLastUpdated();
     } else if (lastUpdated && lastUpdated !== "false") {
       throwValidationError("lastUpdated");
     } else {
