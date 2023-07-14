@@ -6,7 +6,7 @@ import {
   validateSensorQueryParams,
   throwValidationError,
 } from "./queryValidation";
-import lastUpdateTimestamp from "../../scripts/redis/lastUpdateTimestamp";
+import { fetchSensorLastUpdated } from "../../scripts/redis/lastUpdated";
 
 // Set up the router
 export const sensors = express.Router();
@@ -133,7 +133,7 @@ sensors.get("/", async (req: Request, res: Response, next: NextFunction) => {
     // Check for lastUpdated bool
     const lastUpdated = params["lastUpdated"];
     if (lastUpdated && lastUpdated === "true") {
-      data = await lastUpdateTimestamp.dataTimestamp;
+      data = await fetchSensorLastUpdated();
     } else if (lastUpdated && lastUpdated !== "false") {
       throwValidationError("lastUpdated");
     } else {

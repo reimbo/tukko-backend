@@ -7,7 +7,7 @@ export const stationSchema = new Schema("station", {
   tmsNumber: { type: "number" },
   dataUpdatedTime: { type: "date" },
   name: { type: "string" },
-  collectionStatus: { type: "text", sortable: true },
+  // collectionStatus: { type: "text", sortable: true },
   // state: { type: 'string' },
   // geometryType: { type: 'string' },
   coordinates: { type: "point" },
