@@ -23,7 +23,7 @@ export const sensors = express.Router();
  *         schema:
  *           type: bool
  *           enum: [true, false]
- *         description: If parameter is given, result will only contain only update timestamp for sensors.
+ *         description: If parameter is given, result will contain only update timestamp for sensors.
  *         required: false
  *         example: false
  *       - in: query

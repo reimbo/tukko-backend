@@ -172,7 +172,7 @@ stations.get(
  *         schema:
  *           type: bool
  *           enum: [true, false]
- *         description: If parameter is given, result will only contain only update timestamp for stations.
+ *         description: If parameter is given, result will contain only update timestamp for stations.
  *         required: false
  *         example: false
  *       - in: query
