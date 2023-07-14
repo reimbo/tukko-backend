@@ -94,7 +94,7 @@ export async function loadStations() {
     const response: AxiosResponse = await axios.get(urlStations, {
       ...axiosConf,
       params: {
-        situationType: "ACTIVE",
+        state: "ACTIVE",
       },
     });
     const stations = response.data.features;
