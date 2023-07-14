@@ -1,5 +1,5 @@
 require("dotenv").config();
-const axios = require("axios").default;
+import axios from "axios";
 import { AxiosResponse } from "axios";
 import { client, roadworkRepository } from "./client";
 
@@ -7,10 +7,13 @@ import { client, roadworkRepository } from "./client";
 const urlAPI = (process.env.TM_API_URL ||
   "https://tie.digitraffic.fi/api/traffic-message/v1") as string;
 
+// Define URLs for TMS endpoints
+const urlRoadworks = urlAPI + "/messages";
+
 // Configuration for Axios request
 const axiosConf = {
   headers: {
-    clientName: "WIMMA-lab/IoTitude/Travis",
+    clientName: "WIMMA-lab/IoTitude/Tukko",
   },
 };
 
@@ -120,7 +123,7 @@ export async function loadRoadworks() {
   try {
     console.log("[REDIS] Fetching and storing road works...");
     // Fetch data
-    const response: AxiosResponse = await axios.get(`${urlAPI}/messages`, {
+    const response: AxiosResponse = await axios.get(urlRoadworks, {
       ...axiosConf,
       params: {
         situationType: "ROAD_WORK",
