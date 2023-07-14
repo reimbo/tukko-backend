@@ -1,8 +1,9 @@
 import { ParsedQs } from "qs";
+import { buildParamsDict } from "./buildParamsDict";
 import { roadworkRepository } from "./client";
 import { Search } from "redis-om";
 
-// Set allowed params for road works
+// Set allowed params for road work queries
 const roadworkParams = new Set<string>([
   "primaryPointRoadNumber",
   "primaryPointRoadSection",
@@ -12,27 +13,6 @@ const roadworkParams = new Set<string>([
   "startTimeOnBefore",
   "severity",
 ]);
-
-// Search for road works based on provided params
-async function searchRoadworks(params: ParsedQs) {
-  try {
-    let roadworks: any[] = [];
-    // Query road works
-    if (Object.keys(params).length === 0) {
-      // If no params provided, get all road works
-      roadworks = await roadworkRepository.search().return.all();
-    } else {
-      // Build dictionary for road work params
-      const roadworkParamsDict = buildParamsDictionary(params, roadworkParams);
-      // Query road works based on params
-      roadworks = await buildRoadworkQuery(roadworkParamsDict).return.all();
-    }
-    // Return null if list is empty
-    return roadworks.length === 0 ? null : roadworks;
-  } catch (error: any) {
-    throw new Error("Error searching road works: " + error.message);
-  }
-}
 
 // Helper function to build a road work query based on params
 function buildRoadworkQuery(paramsDict: Record<string, any>) {
@@ -108,16 +88,25 @@ function buildDefaultQuery(query: Search, param: string, value: any) {
   return query;
 }
 
-// Helper function to build a dictionary of allowed parameters
-function buildParamsDictionary(params: ParsedQs, targetParams: Set<string>) {
-  const dict: Record<string, any> = {};
-  const keys = new Set<string>(Object.keys(params));
-  for (const param of keys) {
-    if (targetParams.has(param)) {
-      dict[param] = params[param];
+// Search for road works based on provided params
+async function searchRoadworks(params: ParsedQs) {
+  try {
+    let roadworks: any[] = [];
+    // Query road works
+    if (Object.keys(params).length === 0) {
+      // If no params provided, get all road works
+      roadworks = await roadworkRepository.search().return.all();
+    } else {
+      // Build dictionary for road work params
+      const roadworkParamsDict = buildParamsDict(params, roadworkParams);
+      // Query road works based on params
+      roadworks = await buildRoadworkQuery(roadworkParamsDict).return.all();
     }
+    // Return null if list is empty
+    return roadworks.length === 0 ? null : roadworks;
+  } catch (error: any) {
+    throw new Error("Error searching road works: " + error.message);
   }
-  return dict;
 }
 
 // Export search functions
