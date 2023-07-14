@@ -117,7 +117,8 @@ function constructSensorObject(sensor: any) {
 async function flushAllStations() {
   const storedStations = await stationRepository.search().return.all();
   let stationsToDelete: string[] = [];
-  for (const station of storedStations) stationsToDelete.push(station.id as string);
+  for (const station of storedStations)
+    stationsToDelete.push(station.id as string);
   await stationRepository.remove(stationsToDelete);
 }
 
@@ -165,33 +166,33 @@ export async function loadStations() {
   try {
     console.log("[REDIS] Fetching and storing stations...");
     // Check if station data has been updated
-    if (!(await isStationDataUpdated())) {
+    if (await isStationDataUpdated()) {
+      // Get a list of all stations
+      const response: AxiosResponse = await axios.get(
+        `${urlAPI}/stations`,
+        axiosConf
+      );
+      const stations = response.data.features;
+      // Check if any data has been fetched
+      if (stations.length === 0) {
+        console.log("[REDIS] No data has been fetched.");
+        return;
+      }
+      await flushAllStations();
+      // Fetch data for each fetched station and save it to the repository
+      for (const station of stations) {
+        const stationId = station.id;
+        await fetchAndStoreStation(stationId);
+      }
+    } else {
       console.log("[REDIS] Database already contains the latest station data.");
-      return;
     }
-    // Get a list of all stations
-    const response: AxiosResponse = await axios.get(
-      `${urlAPI}/stations`,
-      axiosConf
-    );
-    const stations = response.data.features;
-    // Check if any data has been fetched
-    if (stations.length === 0) {
-      console.log("[REDIS] No data has been fetched.");
-      return;
-    }
-    await flushAllStations();
-    // Fetch data for each fetched station and save it to the repository
-    for (const station of stations) {
-      const stationId = station.id;
-      await fetchAndStoreStation(stationId);
-    }
-    // Attach sensor data to stations
-    await loadSensors();
   } catch (error: any) {
     throw new Error("[REDIS] Error loading stations: " + error.message);
   } finally {
     console.log(`[REDIS] Stored ${storedStationIds.size} stations.`);
+    // Attach sensor data to stations
+    await loadSensors();
   }
 }
 
