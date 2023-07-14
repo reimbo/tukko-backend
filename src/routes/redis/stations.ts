@@ -57,14 +57,6 @@ export const stations = express.Router();
  *                     fi: Tie 1 Karnainen
  *                     sv: Väg 1 Karnais
  *                     en: Road 1 Karnainen
- *                 collectionStatus:
- *                   type: string
- *                   description: Station collection status.
- *                   enum:
- *                     - GATHERING
- *                     - REMOVED_TEMPORARILY
- *                     - REMOVED_PERMANENTLY
- *                   example: GATHERING
  *                 coordinates:
  *                   type: object
  *                   description: Station longitude and latitude coordinates.
@@ -176,14 +168,6 @@ stations.get(
  *         required: false
  *         example: false
  *       - in: query
- *         name: collectionStatus
- *         schema:
- *           type: string
- *           enum: [GATHERING, REMOVED_TEMPORARILY, REMOVED_PERMANENTLY]
- *         description: Query stations based on collection status.
- *         required: false
- *         example: GATHERING
- *       - in: query
  *         name: longitude
  *         schema:
  *           type: number
@@ -271,14 +255,6 @@ stations.get(
  *                       en:
  *                         type: string
  *                         example: Road 1 Karnainen
- *                   collectionStatus:
- *                     type: string
- *                     description: Station collection status.
- *                     enum:
- *                         - GATHERING
- *                         - REMOVED_TEMPORARILY
- *                         - REMOVED_PERMANENTLY
- *                     example: GATHERING
  *                   coordinates:
  *                     type: object
  *                     description: Station longitude and latitude coordinates.

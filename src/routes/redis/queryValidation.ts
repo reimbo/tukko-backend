@@ -3,7 +3,6 @@ import { ParsedQs } from "qs";
 
 // Dictionary to store expected data types for each parameter of station queries
 const stationParameterTypes: Record<string, string> = {
-  collectionStatus: "collectionStatus",
   longitude: "number",
   latitude: "number",
   radius: "number",
@@ -40,12 +39,6 @@ function isValidType(value: string, expectedType: string) {
     return value === "true" || value === "false";
   } else if (expectedType === "string") {
     return typeof value === "string";
-  } else if (expectedType === "collectionStatus") {
-    return (
-      value === "GATHERING" ||
-      value === "REMOVED_TEMPORARILY" ||
-      value === "REMOVED_PERMANENTLY"
-    );
   } else if (expectedType === "severity") {
     return value === "LOW" || value === "HIGH" || value === "HIGHEST";
   } else if (expectedType === "number") {
