@@ -14,6 +14,7 @@ import cors from "cors";
 // Dependencies
 require("dotenv").config();
 import express from "express";
+import compression from "compression";
 const swaggerUi = require("swagger-ui-express");
 import { swaggerSpec } from "./scripts/swagger";
 import { loadStations } from "./scripts/redis/loadStations";
@@ -31,6 +32,8 @@ export const port = (process.env.PORT || 3001) as number;
 
 // Add cors
 app.use(cors());
+// Add compression
+app.use(compression());
 
 // Start the server
 app.listen(port, () => {
