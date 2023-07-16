@@ -89,9 +89,9 @@ function buildDefaultQuery(query: Search, param: string, value: any) {
 }
 
 // Search for road works based on provided params
-async function searchRoadworks(params: ParsedQs) {
+async function searchRoadworks(params: ParsedQs): Promise<object[] | null> {
   try {
-    let roadworks: any[] = [];
+    let roadworks: object[] = [];
     // Query road works
     if (Object.keys(params).length === 0) {
       // If no params provided, get all road works
