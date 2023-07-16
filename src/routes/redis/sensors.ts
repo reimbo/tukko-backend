@@ -8,6 +8,9 @@ import {
 } from "./queryValidation";
 import { fetchSensorLastUpdated } from "../../scripts/redis/lastUpdated";
 
+// Compress responses using gzip
+import zlib from "zlib";
+
 // Set up the router
 export const sensors = express.Router();
 
@@ -149,9 +152,16 @@ sensors.get("/", async (req: Request, res: Response, next: NextFunction) => {
         throw error;
       }
     }
-    // Set the content type to JSON
-    res.setHeader("Content-Type", "application/json");
-    // Respond with the 200 status code
+
+    data = zlib.gzipSync(JSON.stringify(data))
+
+    // Set the appropriate headers
+    res.set({
+      "Content-Encoding": "gzip",
+      "Content-Type": "application/json",
+    });
+
+    // Send the response
     res.status(StatusCodes.OK).send(data);
   } catch (err) {
     // Pass the error to the error handling middleware
