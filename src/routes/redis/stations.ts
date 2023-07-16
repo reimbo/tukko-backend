@@ -8,6 +8,9 @@ import {
 } from "./queryValidation";
 import { fetchStationLastUpdated } from "../../scripts/redis/lastUpdated";
 
+// Compress responses using gzip
+import zlib from "zlib";
+
 // Set up the router
 export const stations = express.Router();
 
@@ -133,7 +136,7 @@ stations.get(
       // Get params
       const id = req.params.id;
       // Search data based on the provided params
-      const data = await redis.searchStationById(id);
+      let data = await redis.searchStationById(id);
       // If no data is found, respond with the 404 status code
       if (data === null) {
         const error: any = new Error(`Station is not found.`);
@@ -141,9 +144,17 @@ stations.get(
         error.statusCode = StatusCodes.NOT_FOUND;
         throw error;
       }
-      // Set the content type to JSON
-      res.setHeader("Content-Type", "application/json");
-      // Respond with the 200 status code
+      
+      data = zlib.gzipSync(JSON.stringify(data))
+
+      // Set the appropriate headers
+      res.set({
+        "Content-Encoding": "gzip",
+        "Content-Type": "application/json",
+      });
+    
+
+      // Send the response
       res.status(StatusCodes.OK).send(data);
     } catch (err) {
       // Pass the error to the error handling middleware
@@ -352,9 +363,16 @@ stations.get("/", async (req: Request, res: Response, next: NextFunction) => {
         throw error;
       }
     }
-    // Set the content type to JSON
-    res.setHeader("Content-Type", "application/json");
-    // Respond with the 200 status code
+    
+    data = zlib.gzipSync(JSON.stringify(data))
+
+    // Set the appropriate headers
+    res.set({
+      "Content-Encoding": "gzip",
+      "Content-Type": "application/json",
+    });
+
+    // Send the response
     res.status(StatusCodes.OK).send(data);
   } catch (err) {
     // Pass the error to the error handling middleware
