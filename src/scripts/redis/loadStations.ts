@@ -55,6 +55,23 @@ function constructStationObject(station: any) {
   };
 }
 
+// Helper function to fetch stations
+async function fetchStations(stations: any[]) {
+  let newStations: any[] = [];
+  for (const station of stations) {
+    const stationId = station.id;
+    const response: AxiosResponse = await axios.get(
+      `${urlStations}/${stationId}`,
+      axiosConf
+    );
+    const newStation = response.data;
+    // Check if station exists
+    if (Object.keys(newStation).length === 0) continue;
+    newStations.push(newStation);
+  }
+  return newStations;
+}
+
 // Helper function to delete all stored stations
 async function flushAllStations() {
   const storedStations = await stationRepository.search().return.all();
@@ -64,21 +81,16 @@ async function flushAllStations() {
   await stationRepository.remove(stationsToDelete);
 }
 
-// Helper function to fetch and store a station
-async function fetchAndStoreStation(stationId: string) {
-  const response: AxiosResponse = await axios.get(
-    `${urlStations}/${stationId}`,
-    axiosConf
-  );
-  const station = response.data;
-  // Check if station exists
-  if (Object.keys(station).length === 0) return;
-  // Set entity ID as "stationID"
-  await stationRepository.save(
-    `${station.id}`,
-    constructStationObject(station)
-  );
-  stationCount++;
+// Helper function to store stations
+async function storeStations(stations: any[]) {
+  for (const station of stations) {
+    // Set entity ID as "stationID"
+    await stationRepository.save(
+      `${station.id}`,
+      constructStationObject(station)
+    );
+    stationCount++;
+  }
 }
 
 // Function to load stations
@@ -100,15 +112,20 @@ export async function loadStations() {
     const stations = response.data.features;
     // Check if any data has been fetched
     if (stations.length === 0) {
-      console.log("[REDIS] No data has been fetched.");
+      console.log("[REDIS] No data has been fetched from /stations/data.");
       return;
     }
-    await flushAllStations();
-    // Fetch data for each fetched station and save it to the repository
-    for (const station of stations) {
-      const stationId = station.id;
-      await fetchAndStoreStation(stationId);
+    // Fetch additional station data
+    const newStations = await fetchStations(stations);
+    // Check if any data has been fetched
+    if (newStations.length === 0) {
+      console.log("[REDIS] No data has been fetched from /stations/{id}}.");
+      return;
     }
+    // Flush old stations before storing new
+    await flushAllStations();
+    // Store new stations to the repository
+    await storeStations(newStations);
   } catch (error: any) {
     throw new Error("[REDIS] Error loading stations: " + error.message);
   } finally {
