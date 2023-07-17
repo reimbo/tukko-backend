@@ -1,15 +1,48 @@
-
 import * as mongoDB from "mongodb"
 import { collections} from "../scripts/mongo";
 import { lastFetchTime, time_To_Insert_New_Data,completedInsert, setLastFetchTime, count, resetCount } from "./checkFetchTime";
 import {  StationData } from "models/tms_data_model";
 
-
+//check if mongoDB is empty
 export const isMongoEmpty = async () => {
     const collectionCount = await collections.tms?.countDocuments({});
     return collectionCount === 0;
 }
+const insertDataToMongo = async (data: StationData) => {
+    try {
+        const result = await collections.tms?.insertOne(data);
+        console.log(`******Inserted ${data.stations.length} into Mongo\n******`);
+        completedInsert();
+        if (!result) {
+            throw new Error('Failed to insert data into MongoDB');
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+const updateDataToMongo = async (data: StationData) => {
+    try {
+        const latestObj = await collections.tms?.find({}).sort({ dataUpdatedTime: -1 }).limit(1).toArray();
+        if (latestObj) {
+            try {
+                const result = await collections.tms?.updateOne(
+                    { _id: latestObj[0]._id }, // Specify the document to update using its _id
+                    { $set: data  }
+                );
+                console.log(`******Updated ${data.stations.length} stations into Mongo ${data.dataUpdatedTime}\n******`);
+                if (!result) {
+                    throw new Error('Failed to update data into MongoDB');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
 
+// Save the lastFetchTime to localStorage
 const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mongoDB.Document> | unknown>  => {
     try {
         if (time_To_Insert_New_Data) {
@@ -21,13 +54,7 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
             console.log(`******MongoDB is empty - Enabled Insert!\n******`);
           }
           
-          const result = await collections.tms?.insertOne(data);
-          console.log(`******Inserted ${data.stations.length} into Mongo\n******`);
-          completedInsert();
-    
-          if (!result) {
-            throw new Error('Failed to insert data into MongoDB');
-          }
+          await insertDataToMongo(data);
       } else {
           if (lastFetchTime) {
             const latestObj = await collections.tms?.find({}).sort({ dataUpdatedTime: -1 }).limit(1).toArray();
@@ -59,8 +86,6 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
           }
         }
       }
-
-  
       } catch (error: unknown) {
         console.error(error)
       return error
@@ -72,7 +97,7 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
     
   }
   
-  export async function runAggregation(searchString: string) {
+  export async function runAggregation(searchString: string) : Promise<StationData[] | undefined> {
     // console.log("******runAggregation\n******", stations.id)
     try {
       const searchSensorList = [
