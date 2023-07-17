@@ -1,4 +1,4 @@
-import { fetch } from './fetch';
+import { fetchMongo } from './fetch';
 import { StationData, Station, Sensor } from '../models/tms_data_model';
 
 describe('fetch-test', () => {
@@ -6,7 +6,7 @@ describe('fetch-test', () => {
 
   beforeAll(async () => {
     const url = 'https://tie.digitraffic.fi/api/tms/v1/stations/data';
-    data = await fetch(url);
+    data = await fetchMongo(url);
   });
 
   test('live-fetched data is defined', () => {
