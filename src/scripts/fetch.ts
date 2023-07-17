@@ -6,11 +6,11 @@ require("dotenv").config();
 
 const axiosConf = {
   headers: {
-    clientName: "WIMMA-lab/IoTitude/Tuko",
+    clientName: "WIMMA-lab/IoTitude/Tukko",
   },
 };
 
-export const fetch = async (url: String) => {
+export const fetchMongo = async (url: String) :Promise<StationData> => {
   try {
     const tmsData_response: AxiosResponse = await axios.get(url, axiosConf);
     const tmsStation_response: AxiosResponse = await axios.get(
