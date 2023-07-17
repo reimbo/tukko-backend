@@ -1,7 +1,8 @@
 import * as mongoDB from "mongodb"
 import { collections} from "../scripts/mongo";
-import { lastFetchTime, time_To_Insert_New_Data,completedInsert, setLastFetchTime, count, resetCount } from "./checkFetchTime";
+import { checkFetchTime,lastFetchTime, time_To_Insert_New_Data,completedInsert, count, resetCount } from "./checkFetchTime";
 import {  StationData } from "models/tms_data_model";
+import { fetchMongo } from "./fetch";
 
 //check if mongoDB is empty
 export const isMongoEmpty = async () => {
@@ -43,7 +44,7 @@ const updateDataToMongo = async (data: StationData) => {
 }
 
 // Save the lastFetchTime to localStorage
-const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mongoDB.Document> | unknown>  => {
+export const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mongoDB.Document> | unknown>  => {
     try {
         if (time_To_Insert_New_Data) {
           if (count >= 6) {
@@ -55,38 +56,12 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
           }
           
           await insertDataToMongo(data);
-      } else {
+        } else {
           if (lastFetchTime) {
-            const latestObj = await collections.tms?.find({}).sort({ dataUpdatedTime: -1 }).limit(1).toArray();
-            
-            if (latestObj) {
-                try {
-                  // if(shouldUpdate){
-                    // console.log("******Latest Object\n******", latestObj[0].stations[0])
-                    const result = await collections.tms?.updateOne(
-                    { _id: latestObj[0]._id }, // Specify the document to update using its _id
-                    { $set: data  } 
-                    );
-                    console.log(`******Updated ${data.stations.length} stations into Mongo ${data.dataUpdatedTime}\n******`);
-                    
-                    if (!result) {
-                        throw new Error('Failed to update data into MongoDB');
-                      }
-                  // }
-                    
-                }
-                catch (error: unknown) {
-                    console.error(error)
-                    return error
-                }
-                finally {
-                    // Update the lastFetchTime in localStorage with the current time
-                    setLastFetchTime(new Date(data.dataUpdatedTime));
-                }
-          }
+            await updateDataToMongo(data);
         }
       }
-      } catch (error: unknown) {
+    } catch (error: unknown) {
         console.error(error)
       return error
     }
@@ -95,6 +70,20 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
   export function addToMongoDB(data: StationData) {
       storeFetch(data);
     
+  }
+  
+  export async function mongoFetch(): Promise<void> {
+    if (await checkFetchTime() || (await isMongoEmpty())) {
+      try {
+        const data: StationData = await fetchMongo(
+          process.env.TMS_STATIONS_DATA_URL ||
+          "https://tie.digitraffic.fi/api/tms/v1/stations/data"
+        ) ;
+        await addToMongoDB(data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
   }
   
   export async function runAggregation(searchString: string) : Promise<StationData[] | undefined> {
@@ -178,7 +167,7 @@ const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mo
         }
       ];
       
-      const result = await collections.tms?.aggregate(aggregationPipeline).toArray();
+      const result : StationData[] = await (collections.tms?.aggregate(aggregationPipeline).toArray()) as StationData[];
       if(!result) {
         throw new Error('Failed to aggregate data from MongoDB');
       }

@@ -53,7 +53,7 @@ const timeDiff= (preTime:string) =>{
 export function completedInsert() : void {
     time_To_Insert_New_Data = false;
     const fiveMinutesAgo = new Date(currentDate.getTime() - 5 * 60 * 1000);
-    setLastFetchTime(fiveMinutesAgo);
+    setLastFetchTime(currentDate);
 }
 export function checkNewDayHasPassedSinceLastFetch(currentHour:number, currentMinute:number, lastFetchYear:number, lastFetchMonth:number, lastFetchDay:number) : boolean {
     if (((currentHour >= 9 && currentMinute>=0)&&
@@ -71,7 +71,7 @@ export function checkNewDayHasPassedSinceLastFetch(currentHour:number, currentMi
 }
 
 // Check if the lastFetchTime exists and if app should fetch new data
-export function checkFetchTime() : boolean {
+export async function checkFetchTime() : Promise<boolean> {
     // If there is no lastFetchTime, set it to previous day and return true
     if (!lastFetchTime) {
         console.log("[MongoDB] - No lastFetchTime found in localStorage.\nStart fetching...\n");
@@ -96,6 +96,7 @@ export function checkFetchTime() : boolean {
     
     if (shouldInsert) {
         console.log('[MongoDB] - 1 hour or more have passed since the last fetch.\nStart fetching...\n');
+        time_To_Insert_New_Data = true;
         return true;
 
     }
