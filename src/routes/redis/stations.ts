@@ -2,7 +2,14 @@ import express from "express";
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import redis from "../../scripts/redis/searchStations";
-import { validateStationQueryParams } from "./queryValidation";
+import {
+  validateStationQueryParams,
+  throwValidationError,
+} from "./queryValidation";
+import { fetchStationLastUpdated } from "../../scripts/redis/lastUpdated";
+
+// Compress responses using gzip
+import zlib from "zlib";
 
 // Set up the router
 export const stations = express.Router();
@@ -53,14 +60,6 @@ export const stations = express.Router();
  *                     fi: Tie 1 Karnainen
  *                     sv: Väg 1 Karnais
  *                     en: Road 1 Karnainen
- *                 collectionStatus:
- *                   type: string
- *                   description: Station collection status.
- *                   enum:
- *                     - GATHERING
- *                     - REMOVED_TEMPORARILY
- *                     - REMOVED_PERMANENTLY
- *                   example: GATHERING
  *                 coordinates:
  *                   type: object
  *                   description: Station longitude and latitude coordinates.
@@ -123,51 +122,6 @@ export const stations = express.Router();
  *                   type: integer
  *                   description: Free flow speed to direction 1 [km/h].
  *                   example: 95
- *                 sensors:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                         description: Sensor ID.
- *                         example: 5119
- *                       stationId:
- *                         type: integer
- *                         description: Station ID.
- *                         example: 24607
- *                       name:
- *                         type: string
- *                         description: Sensor name.
- *                         example: OHITUKSET_5MIN_LIUKUVA_SUUNTA2
- *                       shortName:
- *                         type: string
- *                         description: Sensor short name.
- *                         example: kpl/h2
- *                       timeWindowStart:
- *                         type: string
- *                         format: date-time
- *                         description: UTC timestamp of the latest measurement start datetime.
- *                         example: 2023-06-23T08:58:21.000Z
- *                       timeWindowEnd:
- *                         type: string
- *                         format: date-time
- *                         description: UTC timestamp of the latest measurement end datetime.
- *                         example: 2023-06-23T08:58:21.000Z
- *                       measuredTime:
- *                         type: string
- *                         format: date-time
- *                         description: UTC timestamp of the latest sensor value.
- *                         example: 2023-06-23T08:58:21.000Z
- *                       unit:
- *                         type: string
- *                         description: Sensor measurement unit.
- *                         example: kpl/h
- *                       value:
- *                         type: number
- *                         format: float
- *                         description: Sensor value.
- *                         example: 100
  *       400:
  *         description: Invalid parameter value.
  *       404:
@@ -182,7 +136,7 @@ stations.get(
       // Get params
       const id = req.params.id;
       // Search data based on the provided params
-      const data = await redis.searchStationById(id);
+      let data = await redis.searchStationById(id);
       // If no data is found, respond with the 404 status code
       if (data === null) {
         const error: any = new Error(`Station is not found.`);
@@ -190,9 +144,17 @@ stations.get(
         error.statusCode = StatusCodes.NOT_FOUND;
         throw error;
       }
-      // Set the content type to JSON
-      res.setHeader("Content-Type", "application/json");
-      // Respond with the 200 status code
+      
+      data = zlib.gzipSync(JSON.stringify(data))
+
+      // Set the appropriate headers
+      res.set({
+        "Content-Encoding": "gzip",
+        "Content-Type": "application/json",
+      });
+    
+
+      // Send the response
       res.status(StatusCodes.OK).send(data);
     } catch (err) {
       // Pass the error to the error handling middleware
@@ -209,13 +171,13 @@ stations.get(
  *     description: Retrieve a list of stations including sensor values for each station. If no parameters are provided, all stations are retrieved.
  *     parameters:
  *       - in: query
- *         name: collectionStatus
+ *         name: lastUpdated
  *         schema:
- *           type: string
- *           enum: [GATHERING, REMOVED_TEMPORARILY, REMOVED_PERMANENTLY ]
- *         description: Query stations based on collection status.
+ *           type: bool
+ *           enum: [true, false]
+ *         description: If parameter is given, result will contain only update timestamp for stations.
  *         required: false
- *         example: GATHERING
+ *         example: false
  *       - in: query
  *         name: longitude
  *         schema:
@@ -245,25 +207,25 @@ stations.get(
  *         schema:
  *           type: integer
  *         example: 1
- *         description: Query stations based on a road number.
+ *         description: Query stations based on a road number. Array params supported.
  *       - in: query
  *         name: roadSection
  *         schema:
  *           type: integer
  *         example: 12
- *         description: Query stations based on a road section.
+ *         description: Query stations based on a road section. Array params supported.
  *       - in: query
  *         name: municipalityCode
  *         schema:
  *           type: integer
  *         example: 444
- *         description: Query stations based on a municipality code.
+ *         description: Query stations based on a municipality code. Array params supported.
  *       - in: query
  *         name: provinceCode
  *         schema:
  *           type: integer
  *         example: 1
- *         description: Query stations based on a province code.
+ *         description: Query stations based on a province code. Array params supported.
  *     responses:
  *       200:
  *         description: A list of stations.
@@ -304,14 +266,6 @@ stations.get(
  *                       en:
  *                         type: string
  *                         example: Road 1 Karnainen
- *                   collectionStatus:
- *                     type: string
- *                     description: Station collection status.
- *                     enum:
- *                         - GATHERING
- *                         - REMOVED_TEMPORARILY
- *                         - REMOVED_PERMANENTLY
- *                     example: GATHERING
  *                   coordinates:
  *                     type: object
  *                     description: Station longitude and latitude coordinates.
@@ -378,51 +332,6 @@ stations.get(
  *                     type: integer
  *                     description: Free flow speed to direction 1 [km/h].
  *                     example: 95
- *                   sensors:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         id:
- *                           type: integer
- *                           description: Sensor ID.
- *                           example: 5119
- *                         stationId:
- *                           type: integer
- *                           description: Station ID.
- *                           example: 24607
- *                         name:
- *                           type: string
- *                           description: Sensor name.
- *                           example: OHITUKSET_5MIN_LIUKUVA_SUUNTA2
- *                         shortName:
- *                           type: string
- *                           description: Sensor short name.
- *                           example: kpl/h2
- *                         timeWindowStart:
- *                           type: string
- *                           format: date-time
- *                           description: UTC timestamp of the latest measurement start datetime.
- *                           example: 2023-06-23T08:58:21.000Z
- *                         timeWindowEnd:
- *                           type: string
- *                           format: date-time
- *                           description: UTC timestamp of the latest measurement end datetime.
- *                           example: 2023-06-23T08:58:21.000Z
- *                         measuredTime:
- *                           type: string
- *                           format: date-time
- *                           description: UTC timestamp of the latest sensor value.
- *                           example: 2023-06-23T08:58:21.000Z
- *                         unit:
- *                           type: string
- *                           description: Sensor measurement unit.
- *                           example: kpl/h
- *                         value:
- *                           type: number
- *                           format: float
- *                           description: Sensor value.
- *                           example: 100
  *       400:
  *         description: Invalid parameter value.
  *       404:
@@ -434,20 +343,36 @@ stations.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get query params dictionary
     const params = req.query;
-    // Validate query parameters
-    validateStationQueryParams(params);
-    // Search data based on the provided params
-    const data = await redis.searchStations(params);
-    // If no data is found, respond with the 404 status code
-    if (data == null) {
-      const error: any = new Error(`No stations found.`);
-      error.error = "Not Found";
-      error.statusCode = StatusCodes.NOT_FOUND;
-      throw error;
+    let data = null;
+    // Check for lastUpdated bool
+    const lastUpdated = params["lastUpdated"];
+    if (lastUpdated && lastUpdated === "true") {
+      data = await fetchStationLastUpdated();
+    } else if (lastUpdated && lastUpdated !== "false") {
+      throwValidationError("lastUpdated");
+    } else {
+      // Validate query parameters
+      validateStationQueryParams(params);
+      // Search data based on the provided params
+      data = await redis.searchStations(params);
+      // If no data is found, respond with the 404 status code
+      if (data == null) {
+        const error: any = new Error(`No stations found.`);
+        error.error = "Not Found";
+        error.statusCode = StatusCodes.NOT_FOUND;
+        throw error;
+      }
     }
-    // Set the content type to JSON
-    res.setHeader("Content-Type", "application/json");
-    // Respond with the 200 status code
+    
+    data = zlib.gzipSync(JSON.stringify(data))
+
+    // Set the appropriate headers
+    res.set({
+      "Content-Encoding": "gzip",
+      "Content-Type": "application/json",
+    });
+
+    // Send the response
     res.status(StatusCodes.OK).send(data);
   } catch (err) {
     // Pass the error to the error handling middleware

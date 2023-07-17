@@ -1,9 +1,8 @@
 import { StatusCodes } from "http-status-codes";
 import { ParsedQs } from "qs";
 
-// Dictionary to store expected data types for each parameter of station and sensor queries
+// Dictionary to store expected data types for each parameter of station queries
 const stationParameterTypes: Record<string, string> = {
-  collectionStatus: "collectionStatus",
   longitude: "number",
   latitude: "number",
   radius: "number",
@@ -11,6 +10,16 @@ const stationParameterTypes: Record<string, string> = {
   roadSection: "integer",
   municipalityCode: "integer",
   provinceCode: "integer",
+};
+
+// Dictionary to store expected data types for each parameter of sensor queries
+const sensorParameterTypes: Record<string, string> = {
+  id: "integer",
+  stationId: "integer",
+  measuredTimeOnAfter: "date-time",
+  measuredTimeOnBefore: "date-time",
+  valueLte: "number",
+  valueGte: "number",
 };
 
 // Dictionary to store expected data types for each parameter of road work queries
@@ -30,12 +39,6 @@ function isValidType(value: string, expectedType: string) {
     return value === "true" || value === "false";
   } else if (expectedType === "string") {
     return typeof value === "string";
-  } else if (expectedType === "collectionStatus") {
-    return (
-      value === "GATHERING" ||
-      value === "REMOVED_TEMPORARILY" ||
-      value === "REMOVED_PERMANENTLY"
-    );
   } else if (expectedType === "severity") {
     return value === "LOW" || value === "HIGH" || value === "HIGHEST";
   } else if (expectedType === "number") {
@@ -50,7 +53,7 @@ function isValidType(value: string, expectedType: string) {
 }
 
 // Helper function to throw the 400 status code error
-function throwValidationError(param: string) {
+export function throwValidationError(param: string) {
   const error: any = new Error(`Invalid value for parameter '${param}'.`);
   error.error = "Bad Request";
   error.statusCode = StatusCodes.BAD_REQUEST;
@@ -84,6 +87,11 @@ function validateQueryParams(
 // Function to validate station query parameter types
 export function validateStationQueryParams(params: ParsedQs) {
   validateQueryParams(params, stationParameterTypes);
+}
+
+// Function to validate sensor query parameter types
+export function validateSensorQueryParams(params: ParsedQs) {
+  validateQueryParams(params, sensorParameterTypes);
 }
 
 // Function to validate roadwork query parameter types

@@ -4,6 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import redis from "../../scripts/redis/searchRoadworks";
 import { validateRoadworkQueryParams } from "./queryValidation";
 
+// Compress responses using gzip
+import zlib from "zlib";
+
 // Set up the router
 export const roadworks = express.Router();
 
@@ -189,7 +192,7 @@ roadworks.get("/", async (req: Request, res: Response, next: NextFunction) => {
     // Validate query parameters
     validateRoadworkQueryParams(params);
     // Search data based on the provided params
-    const data = await redis.searchRoadworks(params);
+    let data = await redis.searchRoadworks(params);
     // If no data is found, respond with the 404 status code
     if (data === null) {
       const error: any = new Error(`No road works found.`);
@@ -197,9 +200,16 @@ roadworks.get("/", async (req: Request, res: Response, next: NextFunction) => {
       error.statusCode = StatusCodes.NOT_FOUND;
       throw error;
     }
-    // Set the content type to JSON
-    res.setHeader("Content-Type", "application/json");
-    // Respond with the 200 status code
+    
+    data = zlib.gzipSync(JSON.stringify(data))
+    
+    // Set the appropriate headers
+    res.set({
+      "Content-Encoding": "gzip",
+      "Content-Type": "application/json",
+    });
+    
+    // Send the response
     res.status(StatusCodes.OK).send(data);
   } catch (err) {
     // Pass the error to the error handling middleware
@@ -208,7 +218,7 @@ roadworks.get("/", async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // Error handling middleware
-roadworks.use((err: any, req: Request, res: Response, next: NextFunction) => {
+roadworks.use((err: any, _req: Request, res: Response) => {
   console.error(err);
   // Determine an appropriate status code based on the error
   const statusCode = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
