@@ -21,7 +21,7 @@ const fiveMinutesInMs = 5 * 60 * 1000;
 
 export let count = 0;
 
-export const resetCount = () => {
+export const resetCount = () :void => {
     count = 0;
 }
 
@@ -30,7 +30,7 @@ export function setLastFetchTime(newTime: Date) : void {
     localStorage.setItem('lastFetchTime', newTime.toString());
 }
 
-const isNewDay = (prevTime:string) => {
+const isNewDay = (prevTime:string) : boolean => {
     const lastFetchDate = new Date(prevTime);
     const lastFetchYear = lastFetchDate.getFullYear();
     const lastFetchMonth = lastFetchDate.getMonth();
@@ -42,7 +42,7 @@ const isNewDay = (prevTime:string) => {
     }
 }
 
-const timeDiff= (preTime:string) =>{
+const timeDiff= (preTime:string) : number =>{
     const timeDiff = currentDate.getTime() - new Date(preTime).getTime();
     const timeDiffInMinutes = Math.round(timeDiff / 60000);
     console.log(`timeDiff in minutes: ${timeDiffInMinutes} \n**********`);
