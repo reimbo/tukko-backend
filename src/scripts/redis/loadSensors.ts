@@ -111,7 +111,7 @@ export async function loadSensors() {
       console.log("[REDIS] No data has been fetched.");
       return;
     }
-    // Append sensor data to stations
+    // Sore sensors
     for (const station of stations) {
       storeSensors(station);
     }
