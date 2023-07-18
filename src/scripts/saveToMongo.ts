@@ -56,6 +56,7 @@ export const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneRe
           }
           
           await insertDataToMongo(data);
+          completedInsert();
         } else {
           if (lastFetchTime) {
             await updateDataToMongo(data);
@@ -66,11 +67,6 @@ export const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneRe
       return error
     }
   }
-  // Handler function to add data to MongoDB
-  export function addToMongoDB(data: StationData): void{
-      storeFetch(data);
-  }
-  
   export async function mongoFetch(): Promise<void> {
     if (await checkFetchTime() || (await isMongoEmpty())) {
       try {
@@ -78,7 +74,7 @@ export const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneRe
           process.env.TMS_STATIONS_DATA_URL ||
           "https://tie.digitraffic.fi/api/tms/v1/stations/data"
         ) ;
-        await addToMongoDB(data);
+        await storeFetch(data);
       } catch (error) {
         console.error(error);
       }
