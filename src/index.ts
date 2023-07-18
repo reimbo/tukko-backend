@@ -41,15 +41,27 @@ app.use("/roadworks", roadworks);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Schedule data loading processes for Redis database with a rate in milliseconds
-scheduleScript(loadStations, 0, 60000 /* rate=1min */);
-scheduleScript(loadSensors, 0, 60000 /* rate=1min */);
-scheduleScript(loadRoadworks, 0, 60000 /* rate=1min */);
+// scheduleScript(loadStations, 0, 60000 /* rate=1min */);
+// scheduleScript(loadSensors, 0, 60000 /* rate=1min */);
+// scheduleScript(loadRoadworks, 0, 60000 /* rate=1min */);
 // -----------------------------------------------------------------------------------------------
 
 // ---------------------------------------- MONGO SERVER ----------------------------------------
-// Connect to MongoDB and fetch data every hour for historical data analytics
+async function runMongoFetchInterval(): Promise<void> {
+  while (true) {
+    await mongoFetch();
+    await delay(5 *60 * 1000); // Wait for 1 hour before the next fetch
+  }
+}
+
+async function delay(ms: number): Promise<void> {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+// Call the runMongoFetchInterval function to start fetching data repeatedly
 connect().then(async (): Promise<void> => {
   app.use("/tms", tmsRouter);
-  await mongoFetch()
-  const hourlyInterval = setInterval(mongoFetch, 3600000 /* rate=1h */)
+  // await mongoFetch();
+  runMongoFetchInterval();
 });
+
