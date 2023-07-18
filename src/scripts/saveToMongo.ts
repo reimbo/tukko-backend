@@ -5,11 +5,11 @@ import {  StationData } from "models/tms_data_model";
 import { fetchMongo } from "./fetch";
 
 //check if mongoDB is empty
-export const isMongoEmpty = async () => {
+export const isMongoEmpty = async ()  : Promise<boolean>=> {
     const collectionCount = await collections.tms?.countDocuments({});
     return collectionCount === 0;
 }
-const insertDataToMongo = async (data: StationData) => {
+const insertDataToMongo = async (data: StationData)  : Promise<void>=> {
     try {
         const result = await collections.tms?.insertOne(data);
         console.log(`******Inserted ${data.stations.length} into Mongo\n******`);
@@ -21,7 +21,7 @@ const insertDataToMongo = async (data: StationData) => {
         console.error(error);
     }
 }
-const updateDataToMongo = async (data: StationData) => {
+const updateDataToMongo = async (data: StationData) : Promise<void> => {
     try {
         const latestObj = await collections.tms?.find({}).sort({ dataUpdatedTime: -1 }).limit(1).toArray();
         if (latestObj) {
@@ -67,9 +67,8 @@ export const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneRe
     }
   }
   // Handler function to add data to MongoDB
-  export function addToMongoDB(data: StationData) {
+  export function addToMongoDB(data: StationData): void{
       storeFetch(data);
-    
   }
   
   export async function mongoFetch(): Promise<void> {
