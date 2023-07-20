@@ -1,9 +1,10 @@
 import * as mongoDB from "mongodb"
 import { collections} from "../scripts/mongo";
-import { checkFetchTime,lastFetchTime, time_To_Insert_New_Data,completedInsert, count, resetCount } from "./checkFetchTime";
+import { checkFetchTime,localStorage, time_To_Insert_New_Data,completedInsert, count, resetCount } from "./checkFetchTime";
 import {  StationData } from "models/tms_data_model";
 import { fetchMongo } from "./fetch";
 
+let lastFetchTime = localStorage.getItem('lastFetchTime');
 //check if mongoDB is empty
 export const isMongoEmpty = async ()  : Promise<boolean>=> {
     const collectionCount = await collections.tms?.countDocuments({});
@@ -56,7 +57,6 @@ export const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneRe
           }
           
           await insertDataToMongo(data);
-          completedInsert();
         } else {
           if (lastFetchTime) {
             await updateDataToMongo(data);

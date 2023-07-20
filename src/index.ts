@@ -61,6 +61,7 @@ async function delay(ms: number): Promise<void> {
 // Call the runMongoFetchInterval function to start fetching data repeatedly
 connect().then(async (): Promise<void> => {
   app.use("/tms", tmsRouter);
-  runMongoFetchInterval();
+  
 });
 
+runMongoFetchInterval();

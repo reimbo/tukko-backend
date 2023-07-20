@@ -1,10 +1,10 @@
 import { LocalStorage } from 'node-localstorage';
 
 // Create an instance of LocalStorage
-const localStorage = new LocalStorage('./scratch');
+export const localStorage = new LocalStorage('./scratch');
 
 // Retrieve the lastFetchTime from localStorage
-export let lastFetchTime = localStorage.getItem('lastFetchTime');
+let lastFetchTime = localStorage.getItem('lastFetchTime');
 export let time_To_Insert_New_Data = false;
 
 // Get the current time
@@ -42,18 +42,15 @@ const isNewDay = (prevTime:string) : boolean => {
     }
 }
 
-const timeDiff= (preTime:string, current: Date) : number =>{
-    const timeDiff = new Date().getTime() - new Date(preTime).getTime();
-    const timeDiffInMinutes = Math.round(timeDiff / 60000);
-    console.log(`timeDiff in minutes: ${timeDiffInMinutes} \n**********`);
+// Updated timeDiff function
+const timeDiff = (preTime: string, current: Date): number => {
+    const timeDiff = current.getTime() - new Date(preTime).getTime();
     return timeDiff;
-}
-
+  }
 // Disable new insert for the current date && Set the lastFetchTime to now
 export function completedInsert() : void {
     time_To_Insert_New_Data = false;
-    setLastFetchTime(new Date());
-    console.log("Insertion completed. \n", lastFetchTime)
+    console.log("Insertion completed. \n", localStorage.getItem('lastFetchTime'), "\n")
 }
 export function checkNewDayHasPassedSinceLastFetch(
     currentHour:number, 
@@ -66,7 +63,7 @@ export function checkNewDayHasPassedSinceLastFetch(
             (lastFetchYear <= currentYear 
             && lastFetchMonth <= currentMonth 
             && lastFetchDay < currentDay)) 
-            || ( lastFetchTime && timeDiff(lastFetchTime, new Date()) > 24 * 60 * 60 * 1000) ){
+            || ( lastFetchTime && timeDiff(localStorage.getItem('lastFetchTime')|| '', new Date()) > 24 * 60 * 60 * 1000) ){
                 console.log("[MongoDB] - New day has passed since last fetch. \nStart fetching and inserting new record into Mongodb...\n")
                 return true;
             }
@@ -84,11 +81,12 @@ export async function checkFetchTime(currentFetTime : Date) : Promise<boolean> {
         time_To_Insert_New_Data = true;
         return true;
     }
-    
-    const timeSinceLastFetch = timeDiff(lastFetchTime, currentFetTime);
-    
+    const lastTime = localStorage.getItem('lastFetchTime');
+    const timeSinceLastFetch = timeDiff(lastTime || '', currentFetTime);
+    console.log(`\n timeSinceLastFetch: ${Math.round(timeSinceLastFetch / 60000)} minutes\n**********\n`);
     if (isNewDay(lastFetchTime)){
         time_To_Insert_New_Data = true;
+        setLastFetchTime(new Date());
         return true;
     }
     const shouldUpdate = timeSinceLastFetch > fiveMinutesInMs && timeSinceLastFetch < oneHour && count < 6;
@@ -103,6 +101,7 @@ export async function checkFetchTime(currentFetTime : Date) : Promise<boolean> {
     if (shouldInsert) {
         console.log('[MongoDB] - 1 hour or more have passed since the last fetch.\nStart fetching...\n');
         time_To_Insert_New_Data = true;
+        setLastFetchTime(new Date());
         return true;
 
     }
