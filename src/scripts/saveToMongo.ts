@@ -12,6 +12,8 @@ export const isMongoEmpty = async ()  : Promise<boolean>=> {
 }
 const insertDataToMongo = async (data: StationData)  : Promise<void>=> {
     try {
+        const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Set TTL to 30 days from now
+        data.expireAt = expireAt;
         const result = await collections.tms?.insertOne(data);
         console.log(`\n******Inserted ${data.stations.length} into Mongo\n******\n`);
         completedInsert();
@@ -27,6 +29,8 @@ const updateDataToMongo = async (data: StationData) : Promise<void> => {
         const latestObj = await collections.tms?.find({}).sort({ dataUpdatedTime: -1 }).limit(1).toArray();
         if (latestObj) {
             try {
+                const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Set TTL to 30 days from now
+                data.expireAt = expireAt;
                 const result = await collections.tms?.updateOne(
                     { _id: latestObj[0]._id }, // Specify the document to update using its _id
                     { $set: data  }
