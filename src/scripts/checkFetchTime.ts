@@ -43,7 +43,7 @@ const isNewDay = (prevTime:string) : boolean => {
 }
 
 const timeDiff= (preTime:string, current: Date) : number =>{
-    const timeDiff = current.getTime() - new Date(preTime).getTime();
+    const timeDiff = new Date().getTime() - new Date(preTime).getTime();
     const timeDiffInMinutes = Math.round(timeDiff / 60000);
     console.log(`timeDiff in minutes: ${timeDiffInMinutes} \n**********`);
     return timeDiff;
