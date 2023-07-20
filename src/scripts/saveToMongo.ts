@@ -10,26 +10,11 @@ export const isMongoEmpty = async ()  : Promise<boolean>=> {
     const collectionCount = await collections.tms?.countDocuments({});
     return collectionCount === 0;
 }
-const selectedSensorsToRemove = [
-  'KESKINOPEUS_5MIN_LIUKUVA_SUUNTA1',
-  'KESKINOPEUS_5MIN_LIUKUVA_SUUNTA2',
-  'OHITUKSET_5MIN_LIUKUVA_SUUNTA2_MS2',
-  'OHITUKSET_5MIN_LIUKUVA_SUUNTA1_MS1',
-  'KESKINOPEUS_5MIN_LIUKUVA_SUUNTA1_VVAPAAS1',
-  'KESKINOPEUS_5MIN_LIUKUVA_SUUNTA2_VVAPAAS2',
-  'KESKINOPEUS_5MIN_KIINTEA_SUUNTA1_VVAPAAS1',
-  'KESKINOPEUS_5MIN_KIINTEA_SUUNTA2_VVAPAAS2',
-  'OHITUKSET_5MIN_LIUKUVA_SUUNTA1',
-  'OHITUKSET_5MIN_LIUKUVA_SUUNTA2',
-  'OHITUKSET_5MIN_KIINTEA_SUUNTA1_MS1',
-  'OHITUKSET_5MIN_KIINTEA_SUUNTA2_MS2',
-  'OHITUKSET_5MIN_KIINTEA_SUUNTA2'
-];
 
-function removeSelectedSensors(stationData: StationData, selectedSensors: string[]): StationData {
+function removeSelectedSensors(stationData: StationData): StationData {
   const updatedStations = stationData.stations.map((station) => {
     const updatedSensorValues = station.sensorValues.filter(
-      (sensor) => !selectedSensors.includes(sensor.name)
+      (sensor) => sensor.name.split("_")[1] === "60MIN"
     );
     return { ...station, sensorValues: updatedSensorValues };
   });
@@ -42,7 +27,7 @@ const insertDataToMongo = async (data: StationData)  : Promise<void>=> {
     try {
         const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Set TTL to 30 days from now
         data.expireAt = expireAt;
-        const updatedStationData = removeSelectedSensors(data, selectedSensorsToRemove);
+        const updatedStationData = removeSelectedSensors(data);
         const result = await collections.tms?.insertOne(updatedStationData);
         console.log(`\n******Inserted ${updatedStationData.stations.length} into Mongo\n******\n`);
         completedInsert();
@@ -60,7 +45,7 @@ const updateDataToMongo = async (data: StationData) : Promise<void> => {
             try {
                 const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Set TTL to 30 days from now
                 data.expireAt = expireAt;
-                const updatedStationData = removeSelectedSensors(data, selectedSensorsToRemove);
+                const updatedStationData = removeSelectedSensors(data);
                 const result = await collections.tms?.updateOne(
                     { _id: latestObj[0]._id }, // Specify the document to update using its _id
                     { $set: updatedStationData  }

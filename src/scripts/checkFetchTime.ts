@@ -75,6 +75,7 @@ export function checkNewDayHasPassedSinceLastFetch(
 
 // Check if the lastFetchTime exists and if app should fetch new data
 export async function checkFetchTime(currentFetTime : Date) : Promise<boolean> {
+  let lastFetchTime = localStorage.getItem('lastFetchTime');
     // If there is no lastFetchTime, set it to previous day and return true
     if (!lastFetchTime) {
         console.log("[MongoDB] - No lastFetchTime found in localStorage.\nStart fetching...\n");
