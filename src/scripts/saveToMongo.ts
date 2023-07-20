@@ -67,7 +67,7 @@ const updateDataToMongo = async (data: StationData) : Promise<void> => {
 export const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneResult<mongoDB.Document> | unknown>  => {
     try {
         if (time_To_Insert_New_Data) {
-          if (count >= 6) {
+          if (count >= 12) {
             console.log(`******More than 1 hour has passed since last Insert - Enabled Insert!\n******`);
             resetCount();
           }
