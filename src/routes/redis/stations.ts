@@ -145,7 +145,7 @@ stations.get(
         throw error;
       }
       
-      data = zlib.gzipSync(JSON.stringify(data))
+      const gzdata: Buffer = zlib.gzipSync(JSON.stringify(data))
 
       // Set the appropriate headers
       res.set({
@@ -155,7 +155,7 @@ stations.get(
     
 
       // Send the response
-      res.status(StatusCodes.OK).send(data);
+      res.status(StatusCodes.OK).send(gzdata);
     } catch (err) {
       // Pass the error to the error handling middleware
       next(err);
