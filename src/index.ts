@@ -50,7 +50,7 @@ scheduleScript(loadRoadworks, 0, 60000 /* rate=1min */);
 async function runMongoFetchInterval(): Promise<void> {
   while (true) {
     await mongoFetch();
-    await delay(5 *60 * 1000); // Wait for 1 hour before the next fetch
+    await delay(5 *60 * 1000); // Update every 5 mins && Wait for 1 hour before the next fetch
   }
 }
 
@@ -61,7 +61,6 @@ async function delay(ms: number): Promise<void> {
 // Call the runMongoFetchInterval function to start fetching data repeatedly
 connect().then(async (): Promise<void> => {
   app.use("/tms", tmsRouter);
-  // await mongoFetch();
   runMongoFetchInterval();
 });
 

@@ -12,7 +12,7 @@ export const isMongoEmpty = async ()  : Promise<boolean>=> {
 const insertDataToMongo = async (data: StationData)  : Promise<void>=> {
     try {
         const result = await collections.tms?.insertOne(data);
-        console.log(`******Inserted ${data.stations.length} into Mongo\n******`);
+        console.log(`\n******Inserted ${data.stations.length} into Mongo\n******\n`);
         completedInsert();
         if (!result) {
             throw new Error('Failed to insert data into MongoDB');
@@ -30,7 +30,7 @@ const updateDataToMongo = async (data: StationData) : Promise<void> => {
                     { _id: latestObj[0]._id }, // Specify the document to update using its _id
                     { $set: data  }
                 );
-                console.log(`******Updated ${data.stations.length} stations into Mongo ${data.dataUpdatedTime}\n******`);
+                console.log(`\n******Updated ${data.stations.length} stations into Mongo ${data.dataUpdatedTime}\n******\n`);
                 if (!result) {
                     throw new Error('Failed to update data into MongoDB');
                 }
@@ -68,7 +68,7 @@ export const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneRe
     }
   }
   export async function mongoFetch(): Promise<void> {
-    if (await checkFetchTime() || (await isMongoEmpty())) {
+    if (await checkFetchTime(new Date()) || (await isMongoEmpty())) {
       try {
         const data: StationData = await fetchMongo(
           process.env.TMS_STATIONS_DATA_URL ||
