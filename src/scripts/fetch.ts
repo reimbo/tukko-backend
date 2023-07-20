@@ -59,10 +59,13 @@ export const fetchMongo = async (url: String) :Promise<StationData> => {
         };
       }
     );
-
+      
+    const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Set TTL to 30 days from now
+    
     // Combine the required data from both responses into one object
     const combinedData: StationData = {
       dataUpdatedTime: new Date(Date.now()).toISOString(),
+      expireAt : expireAt,
       stations: stationDataFetched.map((station: any) => {
         const matchingStation = stationsListFetched.find(
           (location: any) => location.id === station.stationId
