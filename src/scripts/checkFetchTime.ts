@@ -90,8 +90,8 @@ export async function checkFetchTime(currentFetTime : Date) : Promise<boolean> {
         setLastFetchTime(new Date());
         return true;
     }
-    const shouldUpdate = timeSinceLastFetch > fiveMinutesInMs && timeSinceLastFetch < oneHour && count < 6;
-    const shouldInsert = (timeSinceLastFetch >= oneHour || count >= 6) && !isNewDay(lastFetchTime);
+    const shouldUpdate = timeSinceLastFetch > fiveMinutesInMs && timeSinceLastFetch < oneHour && count < 12;
+    const shouldInsert = (timeSinceLastFetch >= oneHour || count >= 12) && !isNewDay(lastFetchTime);
     
     if (shouldUpdate) {
         console.log('[MongoDB] - 5 minutes or more have passed since the last fetch.\nStart fetching...\n');
