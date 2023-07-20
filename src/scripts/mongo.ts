@@ -16,8 +16,8 @@ export async function connect(): Promise<void> {
     await client.connect();
     const db: mongoDB.Db = client.db(process.env.DB_NAME || 'travis');
     const tmsCollection: mongoDB.Collection = db.collection(process.env.COLLECTION_NAME || 'tms');
-
     collections.tms = tmsCollection;
+    tmsCollection.createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
     console.log(`[MongoDB] - Successfully connected to database: ${db.databaseName} and collection: ${tmsCollection.collectionName}`);
 
   } catch (error) {

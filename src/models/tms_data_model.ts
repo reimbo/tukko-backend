@@ -26,5 +26,6 @@ export interface Station {
 
 export interface StationData {
   dataUpdatedTime: string,
-  stations: Station[]
+  stations: Station[],
+  expireAt: Date
 }
