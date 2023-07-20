@@ -41,9 +41,9 @@ app.use("/roadworks", roadworks);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Schedule data loading processes for Redis database with a rate in milliseconds
-// scheduleScript(loadStations, 0, 60000 /* rate=1min */);
-// scheduleScript(loadSensors, 0, 60000 /* rate=1min */);
-// scheduleScript(loadRoadworks, 0, 60000 /* rate=1min */);
+scheduleScript(loadStations, 0, 60000 /* rate=1min */);
+scheduleScript(loadSensors, 0, 60000 /* rate=1min */);
+scheduleScript(loadRoadworks, 0, 60000 /* rate=1min */);
 // -----------------------------------------------------------------------------------------------
 
 // ---------------------------------------- MONGO SERVER ----------------------------------------
