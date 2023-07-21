@@ -31,6 +31,7 @@ const insertDataToMongo = async (data: StationData)  : Promise<void>=> {
         const result = await collections.tms?.insertOne(updatedStationData);
         console.log(`\n******Inserted ${updatedStationData.stations.length} into Mongo\n******\n`);
         completedInsert();
+        resetCount();
         if (!result) {
             throw new Error('Failed to insert data into MongoDB');
         }
