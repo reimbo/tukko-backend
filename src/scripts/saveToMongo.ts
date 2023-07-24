@@ -5,12 +5,14 @@ import {  StationData } from "models/tms_data_model";
 import { fetchMongo } from "./fetch";
 
 let lastFetchTime = localStorage.getItem('lastFetchTime');
+
 //check if mongoDB is empty
 export const isMongoEmpty = async ()  : Promise<boolean>=> {
     const collectionCount = await collections.tms?.countDocuments({});
     return collectionCount === 0;
 }
 
+// Remove the selected sensors from the data
 function removeSelectedSensors(stationData: StationData): StationData {
   const updatedStations = stationData.stations.map((station) => {
     const updatedSensorValues = station.sensorValues.filter(
@@ -22,7 +24,7 @@ function removeSelectedSensors(stationData: StationData): StationData {
   return { ...stationData, stations: updatedStations };
 }
 
-
+// Insert the data to MongoDB
 const insertDataToMongo = async (data: StationData)  : Promise<void>=> {
     try {
         const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Set TTL to 30 days from now
@@ -39,6 +41,8 @@ const insertDataToMongo = async (data: StationData)  : Promise<void>=> {
         console.error(error);
     }
 }
+
+// Update the data in MongoDB
 const updateDataToMongo = async (data: StationData) : Promise<void> => {
     try {
         const latestObj = await collections.tms?.find({}).sort({ dataUpdatedTime: -1 }).limit(1).toArray();
@@ -87,7 +91,9 @@ export const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneRe
       return error
     }
   }
-  export async function mongoFetch(): Promise<void> {
+
+// Fetch the data from the API and save it to MongoDB
+export async function mongoFetch(): Promise<void> {
     if (await checkFetchTime(new Date()) || (await isMongoEmpty())) {
       try {
         const data: StationData = await fetchMongo(
@@ -100,8 +106,9 @@ export const storeFetch = async (data: StationData): Promise<mongoDB.InsertOneRe
       }
     }
   }
-  
-  export async function runAggregation(searchString: string) : Promise<StationData[] | undefined> {
+
+// Filter data from MongoDB using the searchString by stationID or sensorName
+export async function runAggregation(searchString: string) : Promise<StationData[] | undefined> {
     // console.log("******runAggregation\n******", stations.id)
     try {
       const searchSensorList = [
