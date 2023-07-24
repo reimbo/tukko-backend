@@ -6,6 +6,6 @@ npm-debug.log*
 scratch/
 # Dependency directories
 node_modules/
-
+.env
 # TypeScript compilation directory
 dist

@@ -30,6 +30,7 @@ export function setLastFetchTime(newTime: Date) : void {
     localStorage.setItem('lastFetchTime', newTime.toString());
 }
 
+// Check if new day has passed since last insert to mongoDB
 const isNewDay = (prevTime:string) : boolean => {
     const lastFetchDate = new Date(prevTime);
     const lastFetchYear = lastFetchDate.getFullYear();
@@ -42,16 +43,19 @@ const isNewDay = (prevTime:string) : boolean => {
     }
 }
 
-// Updated timeDiff function
+// Calculate the time difference between two dates
 const timeDiff = (preTime: string, current: Date): number => {
     const timeDiff = current.getTime() - new Date(preTime).getTime();
     return timeDiff;
-  }
-// Disable new insert for the current date && Set the lastFetchTime to now
+}
+
+// Disable new insert until the next fetch time && Set the lastFetchTime to now
 export function completedInsert() : void {
     time_To_Insert_New_Data = false;
     console.log("Insertion completed. \n", localStorage.getItem('lastFetchTime'), "\n")
 }
+
+// Check if new day has passed and time is after 9AM
 export function checkNewDayHasPassedSinceLastFetch(
     currentHour:number, 
     currentMinute:number, 
