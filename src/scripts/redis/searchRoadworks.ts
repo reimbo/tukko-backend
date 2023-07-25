@@ -80,10 +80,10 @@ function buildDefaultQuery(query: Search, param: string, value: any) {
       const arrayValues: any = value;
       let subquery = roadworkRepository.search();
       for (const arrayValue of arrayValues) {
-        subquery = subquery.or(param).match(arrayValue);
+        subquery = subquery.or(param).equals(arrayValue);
       }
       query = query.where((search) => subquery);
-    } else query = query.and(param).match(value);
+    } else query = query.and(param).equals(value);
   }
   return query;
 }

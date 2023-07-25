@@ -57,7 +57,7 @@ export const roadworkSchema = new Schema("roadwork", {
   direction: { type: "string" },
   startTime: { type: "date", sortable: true },
   endTime: { type: "date" },
-  severity: { type: "text", sortable: true },
+  severity: { type: "string" },
   // workingHours: { type: 'string' },
   // workTypes: { type: 'string' },
   // restrictions: { type: 'string[]' }
