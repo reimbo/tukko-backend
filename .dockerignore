@@ -1,0 +1,10 @@
+dist
+Dockerfile
+redis-stack.conf
+*.yml
+.gitignore
+jest.config.ts
+.git
+.gitlab
+.vscode
+node_modules
