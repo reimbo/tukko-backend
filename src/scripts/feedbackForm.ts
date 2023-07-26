@@ -15,7 +15,7 @@ export const FeedbackForm = async (initialInputs: Inputs) => {
         labels: "Customer Feedback",
     });
 
-    const token = process.env.VITE_PROJECT_ACCESS_TOKEN as string;
+    const token = process.env.ACCESS_TOKEN as string;
 
     const headers = {
         "Private-Token": token,

@@ -1,24 +1,5 @@
 version: '3.8'
 services:
-  tv-api:
-    depends_on:
-      - redis-stack
-      - mongoDB
-    image: node:alpine
-    working_dir: /app
-    container_name: tukko-app
-    restart: always
-    env_file:
-      - .env
-      - .env.override
-    ports:
-      - "3001:3001"
-    volumes:
-      - ./dist/:/app/dist
-      - ./package.json:/app/package.json
-      - ./package-lock.json:/app/package-lock.json
-    command: sh -c "npm i --omit-dev && node dist/index.js"
-
   redis-stack:
     image: redis/redis-stack:latest
     container_name: tukko-redis
@@ -37,3 +18,17 @@ services:
       - .env.override
     ports:
       - "2717:27017"
+
+  tv-api:
+    depends_on:
+      - redis-stack
+      - mongoDB
+    build: .
+    container_name: travis-app
+    restart: always
+    environment:
+      REDIS_OM_URL: "redis://redis-stack:6379"
+      DB_CONN_STRING: "mongodb://admin:admin@mongoDB:27017"
+    ports:
+      - "3001:3001"
+
