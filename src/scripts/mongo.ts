@@ -14,7 +14,7 @@ export const collections: { tms?: mongoDB.Collection } = {};
 export async function connect(): Promise<void> {
   try {
     await client.connect();
-    const db: mongoDB.Db = client.db(process.env.DB_NAME || 'travis');
+    const db: mongoDB.Db = client.db(process.env.DB_NAME || 'tukko');
     const tmsCollection: mongoDB.Collection = db.collection(process.env.COLLECTION_NAME || 'tms');
     collections.tms = tmsCollection;
     tmsCollection.createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
