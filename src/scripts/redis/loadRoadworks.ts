@@ -85,6 +85,15 @@ function isResponseValid(response: AxiosResponse) {
   return true;
 }
 
+// Helper function to delete all stored roadworks
+async function flushAllRoadworks() {
+  const storedRoadworks = await roadworkRepository.search().return.all();
+  let roadworksToDelete: string[] = [];
+  for (const roadwork of storedRoadworks)
+    roadworksToDelete.push(roadwork.id as string);
+  await roadworkRepository.remove(roadworksToDelete);
+}
+
 // Helper function to store road works
 async function storeRoadworks(response: AxiosResponse) {
   roadworksCount = 0;
@@ -111,7 +120,7 @@ async function storeRoadworks(response: AxiosResponse) {
             1000
         );
         // Set time to live for the road work key
-        await roadworkRepository.expire(id, ttlInSeconds);
+        // await roadworkRepository.expire(id, ttlInSeconds);
         roadworksCount++;
       }
     }
@@ -132,6 +141,8 @@ export async function loadRoadworks() {
     });
     // Validate response
     if (!isResponseValid(response)) return;
+    // Flush all roadworks
+    await flushAllRoadworks();
     // Save road works to the repository
     await storeRoadworks(response);
   } catch (error: any) {

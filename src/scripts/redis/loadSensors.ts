@@ -66,6 +66,14 @@ function calculateTimeToLive(sensor: any) {
   return ttlInSeconds > 0 ? ttlInSeconds : 0;
 }
 
+// Helper function to delete all stored sensors
+async function flushAllSensors() {
+  const storedSensors = await sensorRepository.search().return.all();
+  let sensorsToDelete: string[] = [];
+  for (const sensor of storedSensors) sensorsToDelete.push(sensor.id as string);
+  await sensorRepository.remove(sensorsToDelete);
+}
+
 // Helper function to store sensors
 async function storeSensors(station: any) {
   const sensors = station.sensorValues;
@@ -89,7 +97,7 @@ async function storeSensors(station: any) {
       // Set entity ID as "stationID:sensorID
       await sensorRepository.save(id, sensor);
       // Set time to live for the sensor key
-      await sensorRepository.expire(id, calculateTimeToLive(sensor));
+      // await sensorRepository.expire(id, calculateTimeToLive(sensor));
     }
   }
 }
@@ -111,6 +119,8 @@ export async function loadSensors() {
       console.log("[REDIS] No data has been fetched.");
       return;
     }
+    // Flush stored sensors
+    await flushAllSensors();
     // Sore sensors
     for (const station of stations) {
       storeSensors(station);
