@@ -9,7 +9,7 @@ services:
     volumes:
       - ./redis-stack.conf:/redis-stack.conf
 
-  mongoDB:
+  mongo:
     image: mongo:jammy
     container_name: tukko-archive
     env_file:

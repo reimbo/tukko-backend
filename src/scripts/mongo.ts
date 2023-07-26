@@ -13,7 +13,6 @@ export const collections: { tms?: mongoDB.Collection } = {};
 
 export async function connect(): Promise<void> {
   try {
-    console.log(process.env.DB_CONN_STRING,process.env.DB_NAME,process.env.colelction_name)
     await client.connect();
     const db: mongoDB.Db = client.db(process.env.DB_NAME || 'tukko');
     const tmsCollection: mongoDB.Collection = db.collection(process.env.COLLECTION_NAME || 'tms');
