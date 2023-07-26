@@ -4,9 +4,6 @@ services:
     image: redis/redis-stack:latest
     container_name: tukko-redis
     restart: always
-    ports:
-      - 6379:6379
-      - 8001:8001
     volumes:
       - ./redis-stack.conf:/redis-stack.conf
 
@@ -15,6 +12,5 @@ services:
     container_name: tukko-archive
     env_file:
       - .env
-      - .env.override
     ports:
       - "2717:27017"

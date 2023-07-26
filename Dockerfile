@@ -9,5 +9,5 @@ FROM node:alpine
 WORKDIR /app
 COPY --from=build /app/dist/ ./
 COPY --from=build /app/node_modules ./node_modules
-COPY .env.example ./.env
+COPY .env ./.env
 CMD ["node", "./index.js"]
