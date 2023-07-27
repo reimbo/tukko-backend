@@ -100,7 +100,9 @@ async function searchRoadworks(params: ParsedQs): Promise<object[] | null> {
       // Build dictionary for road work params
       const roadworkParamsDict = buildParamsDict(params, roadworkParams);
       // Query road works based on params
-      roadworks = await buildRoadworkQuery(roadworkParamsDict).return.all();
+      roadworks = await buildRoadworkQuery(roadworkParamsDict).return.all({
+        pageSize: 100,
+      });
     }
     // Return null if list is empty
     return roadworks.length === 0 ? null : roadworks;

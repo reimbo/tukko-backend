@@ -50,12 +50,14 @@ async function searchSensors(params: ParsedQs) {
     // Query sensors
     if (Object.keys(params).length === 0) {
       // If no params provided, get all sensors
-      sensors = await sensorRepository.search().return.all();
+      sensors = await sensorRepository.search().return.all({ pageSize: 100 });
     } else {
       // Build dictionary for sensor params
       const sensorParamsDict = buildParamsDict(params, sensorParams);
       // Query sensors based on params
-      sensors = await buildSensorQuery(sensorParamsDict).return.all();
+      sensors = await buildSensorQuery(sensorParamsDict).return.all({
+        pageSize: 100,
+      });
     }
     // Return null if list is empty
     return sensors.length === 0 ? null : sensors;

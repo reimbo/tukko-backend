@@ -74,7 +74,9 @@ async function fetchStations(stations: any[]) {
 
 // Helper function to delete all stored stations
 async function flushAllStations() {
-  const storedStations = await stationRepository.search().return.all();
+  const storedStations = await stationRepository
+    .search()
+    .return.all({ pageSize: 100 });
   let stationsToDelete: string[] = [];
   for (const station of storedStations)
     stationsToDelete.push(station.id as string);

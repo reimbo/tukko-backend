@@ -83,10 +83,12 @@ async function searchStations(params: ParsedQs) {
     // Query stations
     if (Object.keys(stationParamsDict).length === 0) {
       // If no params provided, get all stations
-      stations = await stationRepository.search().return.all();
+      stations = await stationRepository.search().return.all({ pageSize: 100 });
     } else {
       // Query stations based on station params
-      stations = await buildStationQuery(stationParamsDict).return.all();
+      stations = await buildStationQuery(stationParamsDict).return.all({
+        pageSize: 100,
+      });
     }
     // Return null if list is empty
     return stations.length === 0 ? null : stations;
