@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 services:
   redis-stack:
     image: redis/redis-stack:latest
@@ -18,7 +18,7 @@ services:
   tv-api:
     depends_on:
       - redis-stack
-      - mongoDB
+      - mongo
     build: .
     container_name: tukko-app
     restart: always
@@ -27,4 +27,3 @@ services:
       DB_CONN_STRING: "mongodb://admin:admin@mongoDB:27017"
     ports:
       - "3001:3001"
-
