@@ -26,7 +26,7 @@ const options = {
     ],
   },
   // Define the path to files containing annotations
-  apis: ["./dist/routes/redis/*.js"],
+  apis: ["./routes/redis/*.js"],
 };
 // Initialize swagger-jsdoc -> returns validated swagger spec in json format
 export const swaggerSpec = swaggerJsdoc(options);
